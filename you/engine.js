@@ -1,23 +1,26 @@
 import { Input } from "./input.js";
+import { Output } from "./output.js";
 
 
 export class Engine {
 
-	constructor(canvasSize) {
+	constructor() {
 		this.lastTime = 0;
-
 		this.loopCallback = this.loop.bind(this);
-
-		this.canvas = document.querySelector('canvas');
-		this.canvas.width = canvasSize[0];
-		this.canvas.height = canvasSize[1];
-
-		this.context = this.canvas.getContext('2d');
+		this.loopHandle = null;
 
 		this.input = new Input(this);
+		this.output = new Output(this);
+
 		this.events = [];
 
-		this.objects = [];
+		this.app = null;
+	}
+
+	setApplication(app) {
+		this.app = app;
+		this.app.engine = this;
+		this.app.create();
 	}
 
 	start() {
@@ -25,29 +28,28 @@ export class Engine {
 
 		window.requestAnimationFrame(t => {
 			this.lastTime = t;
-
-			window.requestAnimationFrame(this.loopCallback);
+			this.loopHandle = window.requestAnimationFrame(this.loopCallback);
 		});
+	}
+
+	stop() {
+		this.loopHandle = null;
 	}
 
 	loop(elapsedTime) {
 		const deltaTime = elapsedTime - this.lastTime;
 		this.lastTime = elapsedTime;
 
-		this.update(deltaTime);
-		this.render(this.context);
+		this.app.update(deltaTime, this.events, this.input);
+		this.app.render(this.output.screens);
 
 		this.events = [];
 
-		window.requestAnimationFrame(this.loopCallback);
-	}
-
-	update(deltaTime) {
-		this.objects.forEach(object => object.update(deltaTime, this.events, this.input));
-	}
-
-	render(context) {
-		context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.objects.forEach(object => object.render(context));
+		if (this.loopHandle) {
+			this.loopHandle = window.requestAnimationFrame(this.loopCallback);
+		}
+		else {
+			this.app.destroy();
+		}
 	}
 }
