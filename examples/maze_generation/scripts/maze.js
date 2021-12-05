@@ -1,7 +1,3 @@
-import { Engine } from "../../../you/engine.js";
-import { BaseObject } from "../../../you/object.js";
-
-
 const DIRECTION = [
 	[-1, 0],
 	[+1, 0],
@@ -9,8 +5,7 @@ const DIRECTION = [
 	[0, +1],
 ];
 
-
-class Maze {
+export class Maze {
 
 	constructor(width, height) {
 		this.width = width;
@@ -159,50 +154,3 @@ class Maze {
 		context.restore();
 	}
 }
-
-class MazeGenerator extends BaseObject {
-
-	constructor() {
-		super();
-
-		this.maze = new Maze(20, 20);
-		this.maze.spawn(0, 0);
-
-		this.progress = 0;
-		this.finished = false;
-	}
-
-	update(deltaTime, events, input) {
-		if (this.maze.finished) {
-			return;
-		}
-
-		if (this.progress > 10) {
-			this.maze.travel();
-
-			this.progress -= 10;
-		}
-
-		this.progress += deltaTime;
-	}
-
-	render(context) {
-		const tileSize = [
-			Math.floor(SCREEN_WIDTH / this.maze.width),
-			Math.floor(SCREEN_HEIGHT / this.maze.height),
-		];
-
-		this.maze.render(context, tileSize);
-	}
-}
-
-
-
-const SCREEN_WIDTH = 400;
-const SCREEN_HEIGHT = 400;
-
-const engine = new Engine([SCREEN_WIDTH, SCREEN_HEIGHT]);
-
-engine.objects.push(new MazeGenerator());
-
-engine.start();
