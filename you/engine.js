@@ -1,55 +1,70 @@
-import { Input } from "./input.js";
-import { Output } from "./output.js";
+import { Loop } from "./framework/loop.js";
+import { Event } from "./framework/event.js";
+import { Input } from "./framework/input.js";
+import { Output } from "./framework/output.js";
+import { Screen } from "./screen.js";
 
 
-export class Engine {
+class Engine {
 
 	constructor() {
-		this.lastTime = 0;
-		this.loopCallback = this.loop.bind(this);
-		this.loopHandle = null;
-
+		this.loop = new Loop(this);
+		this.event = new Event(this);
 		this.input = new Input(this);
 		this.output = new Output(this);
 
-		this.events = [];
-
-		this.app = null;
-	}
-
-	setApplication(app) {
-		this.app = app;
-		this.app.engine = this;
-		this.app.create();
+		this.applications = [];
 	}
 
 	start() {
-		this.lastTime = 0;
-
-		window.requestAnimationFrame(t => {
-			this.lastTime = t;
-			this.loopHandle = window.requestAnimationFrame(this.loopCallback);
+		this.applications.forEach(app => {
+			app.engine = this;
+			app.create()
 		});
+
+		this.input.connect();
+		this.loop.start();
 	}
 
 	stop() {
-		this.loopHandle = null;
+		this.loop.stop();
+		this.input.disconnect();
+
+		this.applications.forEach(app => {
+			app.destroy();
+			app.engine = null;
+		});
+	}
+}
+
+let engine = null;
+
+export function startEngine(config) {
+	if (engine) {
+		engine.stop();
+		engine = null;
 	}
 
-	loop(elapsedTime) {
-		const deltaTime = elapsedTime - this.lastTime;
-		this.lastTime = elapsedTime;
+	engine = new Engine();
 
-		this.app.update(deltaTime, this.events, this.input);
-		this.app.render(this.output.screens);
+	const screens = config.screens;
+	const applications = config.applications;
 
-		this.events = [];
+	Object.keys(screens).forEach(id => addScreen(id, screens[id]));
+	applications.forEach(app => addApplication(app));
 
-		if (this.loopHandle) {
-			this.loopHandle = window.requestAnimationFrame(this.loopCallback);
-		}
-		else {
-			this.app.destroy();
-		}
-	}
+	engine.start();
+}
+
+function addScreen(id, screenInformation) {
+	const canvas = screenInformation.canvas;
+	const size = screenInformation.size;
+
+	const screen = new Screen(canvas, ...size);
+
+	engine.output.addScreen(id, screen);
+}
+
+function addApplication(application) {
+	engine.applications.push(application);
 }
