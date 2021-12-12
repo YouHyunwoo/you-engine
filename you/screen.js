@@ -16,6 +16,14 @@ export class Screen {
 
 	get size() { return [this.canvas.width, this.canvas.height] }
 
+	addEventListener(type, listener) {
+		this.canvas.addEventListener(type, listener);
+	}
+
+	removeEventListener(type, listener) {
+		this.canvas.removeEventListener(type, listener);
+	}
+
 	static createOffscreen(width, height) {
 		const offscreenCanvas = document.createElement('canvas');
 
