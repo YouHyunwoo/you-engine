@@ -14,7 +14,7 @@ export class Animation {
         this.value += delta * this.speed;
 
         this.event.emit('update', this.value);
-        
+
         if (this.value >= 1) {
             if (!this.repeat) {
                 this.value = 1;

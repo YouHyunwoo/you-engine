@@ -19,7 +19,7 @@ class Engine {
 	start() {
 		this.applications.forEach(app => {
 			app.engine = this;
-			app.create()
+			app.create();
 		});
 
 		this.input.connect();
