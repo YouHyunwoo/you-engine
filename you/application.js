@@ -1,4 +1,4 @@
-import { BaseObject } from "./object.js";
+import { Base as BaseObject } from "./framework/object.js";
 
 
 export class Application extends BaseObject {
@@ -7,7 +7,6 @@ export class Application extends BaseObject {
 		super();
 
 		this.engine = null;
-
 		this.mainScreen = null;
 	}
 
@@ -18,7 +17,10 @@ export class Application extends BaseObject {
 			screen.context.clearRect(0, 0, screen.canvas.width, screen.canvas.height);
 		});
 
-		super.render(screens[this.mainScreen].context, screens);
+		const mainScreen = screens[this.mainScreen];
+		const mainScreenContext = mainScreen.context;
+
+		super.render(mainScreenContext, mainScreen, screens);
 	}
 }
 
@@ -55,7 +57,6 @@ export class SceneApplication extends Application {
 	update(...args) {
 		this.willUpdate(...args);
 		this.scenes[0]?.update(...args);
-		this.objects.forEach(object => object.update(...args));
 		this.didUpdate(...args);
 	}
 
@@ -66,11 +67,11 @@ export class SceneApplication extends Application {
 			screen.context.clearRect(0, 0, screen.canvas.width, screen.canvas.height);
 		});
 
-		const mainScreenContext = screens[this.mainScreen].context;
-		
-		this.willRender(mainScreenContext, screens);
-		this.scenes[0]?.render(mainScreenContext, screens);
-		this.objects.forEach(object => object.render(mainScreenContext, screens));
-		this.didRender(mainScreenContext, screens);
+		const mainScreen = screens[this.mainScreen];
+		const mainScreenContext = mainScreen.context;
+
+		this.willRender(mainScreenContext, mainScreen, screens);
+		this.scenes[0]?.render(mainScreenContext, mainScreen, screens);
+		this.didRender(mainScreenContext, mainScreen, screens);
 	}
 }
