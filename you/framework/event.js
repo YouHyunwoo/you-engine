@@ -10,10 +10,6 @@ export class Event {
 		this.events.push(event);
 	}
 
-	getEvents() {
-		return this.events;
-	}
-
 	clear() {
 		this.events.splice(0);
 	}
