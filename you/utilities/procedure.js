@@ -1,4 +1,4 @@
-import { BaseObject } from "../../../libraries/you/object.js";
+import { Base as BaseObject } from "../../../libraries/you/framework/object.js";
 import { EventEmitter } from "../../../libraries/you/utilities/event.js";
 
 
@@ -18,7 +18,7 @@ export class Parallel extends Task {
     constructor(tasks) {
         super();
 
-        this.objects = tasks;
+        this.tasks = tasks;
         this.finished = tasks.map(t => false);
 
         tasks.forEach(task => {
@@ -28,7 +28,7 @@ export class Parallel extends Task {
 
     update(deltaTime, events, input) {
 		this.willUpdate(deltaTime, events, input);
-		this.objects.forEach((object, index) => {
+		this.tasks.forEach((object, index) => {
             if (this.finished[index] === false) {
                 object.update(deltaTime, events, input);
             }
@@ -38,7 +38,7 @@ export class Parallel extends Task {
 
     render(context, screen, screens) {
 		this.willRender(context, screen, screens);
-        this.objects.forEach((object, index) => {
+        this.tasks.forEach((object, index) => {
             if (this.finished[index] === false) {
                 object.render(context, screen, screens);
             }
@@ -47,7 +47,7 @@ export class Parallel extends Task {
 	}
 
     finish(task) {
-        const index = this.objects.indexOf(task);
+        const index = this.tasks.indexOf(task);
         this.finished[index] = true;
 
         if (this.finished.every(finished => finished)) {
@@ -63,6 +63,7 @@ export class Procedure extends BaseObject {
 
         this.event = new EventEmitter();
 
+        this.tasks = [];
         this.currentTaskIndex = 0;
 
         for (const task of tasks) {
@@ -76,12 +77,10 @@ export class Procedure extends BaseObject {
         }
 	}
 
-    get tasks() { return this.objects }
-
 	update(deltaTime, events, input) {
 		this.willUpdate(deltaTime, events, input);
 
-		const object = this.objects[this.currentTaskIndex];
+		const object = this.tasks[this.currentTaskIndex];
 		object?.update(deltaTime, events, input);
 
 		this.didUpdate(deltaTime, events, input);
@@ -90,7 +89,7 @@ export class Procedure extends BaseObject {
 	render(context, screen, screens) {
 		this.willRender(context, screen, screens);
 
-		const object = this.objects[this.currentTaskIndex];
+		const object = this.tasks[this.currentTaskIndex];
 		object?.render(context, screen, screens);
 
 		this.didRender(context, screen, screens);
@@ -99,24 +98,24 @@ export class Procedure extends BaseObject {
     add(task) {
         if (task === null) { return }
 
-        this.objects.push(task);
+        this.tasks.push(task);
         task.procedure = this;
     }
 
     remove(task) {
         if (task === null) { return }
 
-        const index = this.objects.indexOf(task);
+        const index = this.tasks.indexOf(task);
         if (index >= 0) {
-            this.objects.splice(index, 1);
+            this.tasks.splice(index, 1);
             task.procedure = null;
         }
     }
 
     finish(task) {
-        this.currentTaskIndex = Math.min(this.currentTaskIndex + 1, this.objects.length);
+        this.currentTaskIndex = Math.min(this.currentTaskIndex + 1, this.tasks.length);
 
-		if (this.currentTaskIndex === this.objects.length) {
+		if (this.currentTaskIndex === this.tasks.length) {
             this.event.emit('finish');
 		}
     }
