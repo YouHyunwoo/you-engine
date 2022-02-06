@@ -10,6 +10,8 @@ export class Application extends BaseObject {
 		this.mainScreen = null;
 	}
 
+	get screen() { return this.engine.output.screens[this.mainScreen] }
+
 	render(screens) {
 		Object.keys(screens).forEach(screenId => {
 			const screen = screens[screenId];
