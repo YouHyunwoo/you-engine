@@ -1,7 +1,7 @@
 import { EventEmitter } from "../utilities/event.js";
 
 
-export class Animation {
+export class Progress {
 
     constructor(speed, repeat) {
         this.event = new EventEmitter();
@@ -11,6 +11,8 @@ export class Animation {
     }
 
     update(delta) {
+        if (!this.repeat && this.value >= 1) { return }
+
         this.value += delta * this.speed;
 
         this.event.emit('update', this.value);
@@ -47,17 +49,5 @@ export class Animation {
         }
 
         return animation;
-    }
-}
-
-export class Animator {
-
-    constructor() {
-        this.animations = [];
-    }
-
-    update(delta) {
-        this.animations.forEach(animation => animation.update(delta));
-        this.animations = this.animations.filter(animation => animation.repeat || animation.value < 1);
     }
 }
