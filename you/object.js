@@ -28,11 +28,12 @@ export class Object extends Stateful {
 		if (!this._created || this._destroyed) { return }
 		this.willDestroy(...args);
 		this.event.emit('willDestroy');
-		this._created = false;
+		this._destroyed = true;
 		this.components.forEach(component => component.destroy(...args));
 		this.objects.forEach(object => object.destroy(...args));
 		this.didDestroy(...args);
 		this.event.emit('didDestroy');
+		this.parent?.remove(this);
 	}
 
 	update(deltaTime, events, input) {
@@ -54,14 +55,20 @@ export class Object extends Stateful {
 	add(object) {
 		this.objects.push(object);
         object.parent = this;
+		if (this._created) {
+			object.create();
+		}
 	}
 
-	remove(object) {
+	remove(object, destroy=true) {
 		const index = this.objects.indexOf(object);
 
         if (index >= 0) {
             this.objects.splice(index, 1);
             object.parent = null;
+			if (this._created && destroy) {
+				object.destroy();
+			}
         }
 	}
 
