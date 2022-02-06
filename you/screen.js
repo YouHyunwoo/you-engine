@@ -15,6 +15,7 @@ export class Screen {
 	set height(value) { this.canvas.height = value }
 
 	get size() { return [this.canvas.width, this.canvas.height] }
+	set size(value) { [this.canvas.width, this.canvas.height] = value }
 
 	addEventListener(type, listener) {
 		this.canvas.addEventListener(type, listener);
