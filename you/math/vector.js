@@ -51,5 +51,28 @@ Array.prototype.contains = function (point) {
 
 Array.prototype.equals = function (other) {
     if (this.length !== other.length) { throw Error() }
-        return this.every((v, i) => v === other[i]);
+    return this.every((v, i) => v === other[i]);
 }
+
+Array.prototype.dot = function (other) {
+    if (this.length !== other.length) { throw Error() }
+    return this.reduce((acc, cur, idx) => acc + cur * other[idx], 0);
+}
+
+Object.defineProperty(Array.prototype, 'negate', {
+    get() {
+        return this.mul(-1);
+    }
+});
+
+Object.defineProperty(Array.prototype, 'magnitude', {
+    get() {
+        return Math.sqrt(this.dot(this));
+    }
+});
+
+Object.defineProperty(Array.prototype, 'normalized', {
+    get() {
+        return this.div(this.magnitude);
+    }
+});
