@@ -118,3 +118,16 @@ Array.range = function* (start, end, step) {
         yield i;
     }
 };
+
+Array.prototype.choice = function (count=1) {
+    const candidates = [...this];
+    const result = [];
+
+    for (let i = 0; i < count; i++) {
+        const index = Math.trunc(Math.random() * candidates.length);
+        const element = candidates.splice(index, 1)[0];
+        result.push(element);
+    }
+
+    return count === 1 ? result[0] : result;
+};
