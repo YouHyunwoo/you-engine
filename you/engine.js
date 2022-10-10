@@ -39,7 +39,7 @@ class Engine {
 
 let engine = null;
 
-export function startEngine(config) {
+export function startEngine(configuration) {
 	if (engine) {
 		engine.stop();
 		engine = null;
@@ -47,24 +47,17 @@ export function startEngine(config) {
 
 	engine = new Engine();
 
-	const screens = config.screens;
-	const applications = config.applications;
+	const screens = configuration.screens;
+	const applications = configuration.applications;
 
-	Object.keys(screens).forEach(id => addScreen(id, screens[id]));
-	applications.forEach(app => addApplication(app));
+	Object.keys(screens).forEach(id => {
+		const configuration = screens[id];
+		const canvas = configuration.canvas;
+		const size = configuration.size;
+		const screen = new Screen(id, size, canvas);
+		engine.output.addScreen(id, screen);
+	});
+	applications.forEach(app => engine.applications.push(app));
 
 	engine.start();
-}
-
-function addScreen(id, screenInformation) {
-	const canvas = screenInformation.canvas;
-	const size = screenInformation.size;
-
-	const screen = new Screen(canvas, ...size);
-
-	engine.output.addScreen(id, screen);
-}
-
-function addApplication(application) {
-	engine.applications.push(application);
 }
