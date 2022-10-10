@@ -109,11 +109,19 @@ export class Object extends Stateful {
         }
     }
 
-	findComponent(type) {
-		return this.components.find(component => component instanceof type);
+	findComponent(type, requirement=false) {
+		const component = this.components.find(component => component instanceof type);
+
+		if (requirement && !component) { throw `The component is required: ${type}` }
+
+		return component;
 	}
 
-	findAllComponent(type) {
-		return this.components.filter(component => component instanceof type);
+	findAllComponent(type, requirement=false) {
+		const components = this.components.filter(component => component instanceof type);
+
+		if (requirement && components.length === 0) { throw `The component is required: ${type}` }
+
+		return components;
 	}
 }
