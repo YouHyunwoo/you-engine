@@ -88,7 +88,6 @@ export class Stateful extends Enable {
 
 	get enable() { return this._enabled }
 	set enable(value) {
-		if (!this._created || this._destroyed) { return }
 		if (value === true) {
 			this.willBeEnabled();
 			this.event.emit('willBeEnabled');
@@ -105,7 +104,7 @@ export class Stateful extends Enable {
 		}
 	}
 
-	get created() { return this._created && !this._destroyed }
+	get created() { return this._created }
 	create(...args) {
 		if (this._created) { return }
 		this.willCreate(...args);
@@ -117,12 +116,12 @@ export class Stateful extends Enable {
 	willCreate(...args) {}
 	didCreate(...args) {}
 
-	get destroyed() { return this._created && this._destroyed }
+	get destroyed() { return this._destroyed }
 	destroy(...args) {
 		if (!this._created || this._destroyed) { return }
 		this.willDestroy(...args);
 		this.event.emit('willDestroy');
-		this._created = false;
+		this._destroyed = true;
 		this.didDestroy(...args);
 		this.event.emit('didDestroy');
 	}
