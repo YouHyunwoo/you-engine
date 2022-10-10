@@ -8,6 +8,7 @@ export class Input {
 		this.onPointerDownCallback = this.onPointerDown.bind(this);
 		this.onPointerMoveCallback = this.onPointerMove.bind(this);
 		this.onPointerUpCallback = this.onPointerUp.bind(this);
+		this.onWheelCallback = this.onWheel.bind(this);
 
 		this.keys = new Set();
 		this.mouse = [0, 0];
@@ -21,6 +22,7 @@ export class Input {
 			screen.addEventListener('pointerdown', this.onPointerDownCallback);
 			screen.addEventListener('pointermove', this.onPointerMoveCallback);
 			screen.addEventListener('pointerup', this.onPointerUpCallback);
+			screen.addEventListener('wheel', this.onWheelCallback);
 		});
 	}
 
@@ -32,6 +34,7 @@ export class Input {
 			screen.removeEventListener('pointerdown', this.onPointerDownCallback);
 			screen.removeEventListener('pointermove', this.onPointerMoveCallback);
 			screen.removeEventListener('pointerup', this.onPointerUpCallback);
+			screen.removeEventListener('wheel', this.onWheelCallback);
 		});
 	}
 
@@ -63,5 +66,9 @@ export class Input {
 
 	onPointerUp(event) {
 		this.engine.event.add({ type: 'mouseup', position: [event.offsetX, event.offsetY] });
+	}
+
+	onWheel(event) {
+		this.engine.event.add({ type: 'mousewheel', position: [event.offsetX, event.offsetY], delta: event.deltaY });
 	}
 }
