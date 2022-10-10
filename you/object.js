@@ -48,7 +48,7 @@ export class Object extends Stateful {
 		this.objects.forEach(object => object.destroy(...args));
 		this.didDestroy(...args);
 		this.event.emit('didDestroy');
-		this.parent?.remove(this);
+		this.parent?.remove(this, false);
 	}
 
 	update(deltaTime, events, input) {
@@ -80,10 +80,10 @@ export class Object extends Stateful {
 
         if (index >= 0) {
             this.objects.splice(index, 1);
-            object.parent = null;
 			if (this._created && destroy) {
 				object.destroy();
 			}
+			object.parent = null;
         }
 	}
 
