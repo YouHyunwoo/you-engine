@@ -49,6 +49,17 @@ Array.prototype.contains = function (point) {
     throw Error();
 };
 
+Array.prototype.intersects = function (area) {
+    if (this.length === 4) {
+        if (area.length === 4) {
+            return this[0] < area[0] + area[2] && area[0] < this[0] + this[2] &&
+                this[1] < area[1] + area[3] && area[1] < this[1] + this[3];
+        }
+    }
+
+    throw Error();
+};
+
 Array.prototype.equals = function (other) {
     if (this.length !== other.length) { throw Error() }
     return this.every((v, i) => v === other[i]);
