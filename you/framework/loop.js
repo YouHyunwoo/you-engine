@@ -26,7 +26,7 @@ export class Loop {
 		this.lastTime = elapsedTime;
 
 		this.engine.applications.forEach(app => {
-			app.update(deltaTime, this.engine.event.events, this.input);
+			app.update(deltaTime / 1000.0, this.engine.event.events, this.engine.input);
 			app.render(this.engine.output.screens);
 		});
 
