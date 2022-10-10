@@ -1,22 +1,33 @@
 import { Base as BaseObject } from "./framework/object.js";
+import { EventEmitter } from "./utilities/event.js";
+import { Camera } from "./camera.js";
 
 
 export class Scene extends BaseObject {
 
-    constructor() {
+    constructor({
+        events={}
+    }={}) {
         super();
+
+        this.event = new EventEmitter(this);
+        Object.keys(events).forEach(event => this.event.on(event, events[event]));
+
+        this._created = false;
 
         this.application = null;
         this.objects = [];
         this.ui = [];
 
-        this.camera = [0, 0];
+        this.camera = null;
     }
 
     create(...args) {
+        this.camera = new Camera(this.application.screen);
 		this.willCreate(...args);
         this.objects.forEach(object => object.create(...args));
         this.ui.forEach(object => object.create(...args));
+        this._created = true;
 		this.didCreate(...args);
 	}
 
@@ -25,6 +36,7 @@ export class Scene extends BaseObject {
         this.objects.forEach(object => object.destroy(...args));
         this.ui.forEach(object => object.destroy(...args));
 		this.didDestroy(...args);
+        this.camera = null;
 	}
 
     update(deltaTime, events, input) {
@@ -41,7 +53,7 @@ export class Scene extends BaseObject {
         if (camera) {
             context.save();
             context.translate(screen.width / 2, screen.height / 2);
-            context.translate(-Math.floor(camera[0]), -Math.floor(camera[1]));
+            context.translate(-Math.floor(camera.position[0]), -Math.floor(camera.position[1]));
         }
 
         this.objects.forEach(object => object.render(context, screen, screens));
@@ -60,10 +72,12 @@ export class Scene extends BaseObject {
 
         target.push(object);
         object.parent = this;
-        object.create();
+        if (this._created) {
+            object.create();
+        }
     }
 
-    remove(object) {
+    remove(object, destroy=true) {
         const ui = object.tags.has('ui');
         const target = ui ? this.ui : this.objects;
 
@@ -72,7 +86,9 @@ export class Scene extends BaseObject {
         if (index >= 0) {
             target.splice(index, 1);
             object.parent = null;
-            object.destroy();
+            if (this._created && destroy) {
+                object.destroy();
+            }
         }
     }
 
@@ -86,15 +102,15 @@ export class Scene extends BaseObject {
                 .concat(this.ui.filter(object => object.name === name))
     }
 
-    push(scene, enterArgs) {
-        this.application.push(scene, enterArgs);
+    push(scene, ...enterArgs) {
+        this.application.push(scene, ...enterArgs);
     }
 
-    pop(exitArgs) {
-        this.application.pop(exitArgs);
+    pop(...exitArgs) {
+        this.application.pop(...exitArgs);
     }
 
-    transit(scene, exitArgs, enterArgs) {
-        this.application.transit(scene, exitArgs, enterArgs);
+    transit(scene, { exitArgs=[], enterArgs=[] }={}) {
+        this.application.transit(scene, { exitArgs, enterArgs });
     }
 }
