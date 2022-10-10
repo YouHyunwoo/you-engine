@@ -9,6 +9,7 @@ export class Input {
 		this.onPointerMoveCallback = this.onPointerMove.bind(this);
 		this.onPointerUpCallback = this.onPointerUp.bind(this);
 		this.onWheelCallback = this.onWheel.bind(this);
+		this.onPointerLockMoveCallback = this.onPointerLockMove.bind(this);
 
 		this.keys = new Set();
 		this.mouse = [0, 0];
@@ -70,5 +71,20 @@ export class Input {
 
 	onWheel(event) {
 		this.engine.event.add({ type: 'mousewheel', position: [event.offsetX, event.offsetY], delta: event.deltaY });
+	}
+
+	onPointerLockMove(event) {
+		this.engine.event.add({
+			type: 'mouselockmove',
+			delta: [event.movementX, event.movementY],
+		});
+	}
+
+	lockPointer() {
+		document.addEventListener("mousemove", this.onPointerLockMoveCallback, false);
+	}
+
+	unlockPointer() {
+		document.removeEventListener("mousemove", this.onPointerLockMoveCallback, false);
 	}
 }
