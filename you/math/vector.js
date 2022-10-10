@@ -87,3 +87,34 @@ Object.defineProperty(Array.prototype, 'normalized', {
         return this.div(this.magnitude);
     }
 });
+
+Array.zeros = function (...shape) {
+    if (shape.length < 1) {
+        throw Error();
+    }
+    else if (shape.length === 1) {
+        return Array.repeat(shape[0], 0);
+    }
+    else {
+        return Array.repeat(shape.at(-1), () => Array.zeros(...shape.slice(0, -1)));
+    }
+};
+
+Array.repeat = function (count, value) {
+    const result = [];
+    for (let i = 0; i < count; i++) {
+        if (value instanceof Function) {
+            result.push(value());
+        }
+        else {
+            result.push(value);
+        }
+    }
+    return result;
+};
+
+Array.range = function* (start, end, step) {
+    for (let i = start; i < end; i += step) {
+        yield i;
+    }
+};
