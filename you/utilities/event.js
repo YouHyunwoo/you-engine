@@ -1,6 +1,7 @@
 export class EventEmitter {
 
-    constructor() {
+    constructor(bindingObject=null) {
+        this.bindingObject = bindingObject;
         this.eventGroups = {};
     }
 
@@ -11,7 +12,7 @@ export class EventEmitter {
             this.eventGroups[event] = [];
         }
 
-        this.eventGroups[event].push([listener, count]);
+        this.eventGroups[event].push([listener.bind(this.bindingObject), count]);
     }
 
     remove(event, listener=null) {
