@@ -26,6 +26,8 @@ export class Object extends Stateful {
 		objects.forEach(object => this.add(object));
 	}
 
+	get root() { return this.parent?.root ?? this.parent }
+
 	create(...args) {
 		if (this._created) { return }
 		this.willCreate(...args);
