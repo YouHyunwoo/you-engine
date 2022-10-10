@@ -34,12 +34,16 @@ export class Base {
 
 export class Enable extends Base {
 
-	constructor(enable) {
+	constructor({
+		events={},
+		enable=true,
+	}={}) {
 		super();
 
-		this._enabled = enable ?? true;
+		this.event = new EventEmitter(this);
+		Object.keys(events).forEach(event => this.event.on(event, events[event]));
 
-		this.event = new EventEmitter();
+		this._enabled = enable;
 	}
 
 	get enable() { return this._enabled }
@@ -79,8 +83,14 @@ export class Enable extends Base {
 
 export class Stateful extends Enable {
 
-	constructor(enable) {
-		super(enable);
+	constructor({
+		events={},
+		enable=true,
+	}={}) {
+		super({
+			events,
+			enable,
+		});
 
 		this._created = false;
 		this._destroyed = false;

@@ -3,14 +3,27 @@ import { Stateful } from "./framework/object.js";
 
 export class Object extends Stateful {
 
-	constructor(name, enable) {
-		super(enable);
+	constructor({
+		events={},
+		name='', enable=true,
+		tags=[],
+		components=[],
+		objects=[],
+	}={}) {
+		super({
+			events,
+			enable,
+		});
 
 		this.name = name;
 		this.parent = null;
 		this.tags = new Set();
 		this.components = [];
 		this.objects = [];
+
+		tags.forEach(tag => this.tags.add(tag));
+		components.forEach(component => this.addComponent(component));
+		objects.forEach(object => this.add(object));
 	}
 
 	create(...args) {
