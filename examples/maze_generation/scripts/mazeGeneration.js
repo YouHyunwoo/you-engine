@@ -21,13 +21,13 @@ export class MazeGeneration extends Application {
 			return;
 		}
 
-		if (this.progress > 10) {
+		if (this.progress > 1) {
 			this.maze.travel();
 
-			this.progress -= 10;
+			this.progress -= 1;
 		}
 
-		this.progress += deltaTime;
+		this.progress += deltaTime * 100;
 	}
 
 	didRender(context, screens) {
