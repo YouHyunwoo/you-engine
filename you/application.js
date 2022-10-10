@@ -50,9 +50,9 @@ export class SceneApplication extends Application {
 		return scene;
 	}
 
-	transit(scene, exitArgs, enterArgs) {
-		const oldScene = this.pop(...(exitArgs ?? []));
-		this.push(scene, ...(enterArgs ?? []));
+	transit(scene, { exitArgs=[], enterArgs=[] }={}) {
+		const oldScene = this.pop(...exitArgs);
+		this.push(scene, ...enterArgs);
 		return oldScene;
 	}
 
