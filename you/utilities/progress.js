@@ -3,16 +3,16 @@ import { EventEmitter } from "../utilities/event.js";
 
 export class Progress {
 
-    constructor(speed, repeat) {
-        this.event = new EventEmitter();
-        this.speed = speed ?? 1;
-        this.repeat = repeat ?? false;
+    constructor(speed=1, repeat=false) {
+        this.event = new EventEmitter(this);
+        this.speed = speed;
+        this.repeat = repeat;
         this.value = 0;
     }
 
     update(delta) {
-        if (!this.repeat && this.value >= 1) { return }
-
+        if (!this.repeat &&
+            (this.speed > 0 && this.value >= 1 || this.speed < 0 && this.value <= 0)) { return }
         this.value += delta * this.speed;
 
         this.event.emit('update', this.value);
@@ -20,13 +20,27 @@ export class Progress {
         if (this.value >= 1) {
             if (!this.repeat) {
                 this.value = 1;
-                this.event.emit('finish');
+                this.event.emit('finish', this.value);
             }
             else {
-                const count = Math.floor(this.value);
+                const count = Math.trunc(this.value);
                 this.value -= count;
 
                 for (let i = 0; i < count; i++) {
+                    this.event.emit('exceed');
+                }
+            }
+        }
+        else if (this.value <= 0) {
+            if (!this.repeat) {
+                this.value = 0;
+                this.event.emit('finish', this.value);
+            }
+            else {
+                const count = Math.trunc(this.value);
+                this.value -= count;
+
+                for (let i = 0; i < -count; i++) {
                     this.event.emit('exceed');
                 }
             }
