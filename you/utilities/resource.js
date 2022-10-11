@@ -1,8 +1,20 @@
 export default {
     json: {
         async load(url) {
+            let accessors = [];
+
+            if (url.includes(':')) {
+                const items = url.split(':');
+                url = items[0];
+                accessors = items.slice(1).join(':').split('.');
+            }
+
             const data = await fetch(url);
-            const json = await data.json();
+            let json = await data.json();
+
+            for (const accessor of accessors) {
+                json = json[accessor];
+            }
 
             return json;
         }
