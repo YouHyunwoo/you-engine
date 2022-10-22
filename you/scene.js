@@ -1,83 +1,97 @@
-import { Base as BaseObject } from "./framework/object.js";
-import { EventEmitter } from "./utilities/event.js";
+import { Stateful } from "./framework/object.js";
 import { Camera } from "./camera.js";
 
 
-export class Scene extends BaseObject {
+export class Scene extends Stateful {
 
-    constructor({
-        events={}
-    }={}) {
-        super();
-
-        this.event = new EventEmitter(this);
-        Object.keys(events).forEach(event => this.event.on(event, events[event]));
-
-        this._created = false;
-
-        this.application = null;
-        this.objects = [];
-        this.ui = [];
-
-        this.camera = null;
-    }
+    application = null;
+    objects = [];
+    ui = [];
+    camera = null;
 
     create(...args) {
-        this.camera = new Camera(this.application.screen);
-		this.willCreate(...args);
-        this.objects.forEach(object => object.create(...args));
-        this.ui.forEach(object => object.create(...args));
-        this._created = true;
-		this.didCreate(...args);
+        if (this[this.constructor.STATE] === this.constructor.STATES.INSTANTIATED) {
+            this.camera = new Camera(this.application.screen);
+
+			this.willCreate(...args);
+			this.event.emit('willCreate');
+			this[this.constructor.STATE] = this.constructor.STATES.CREATED;
+            this.objects.forEach(object => object.create(...args));
+            this.ui.forEach(object => object.create(...args));
+			this.didCreate(...args);
+			this.event.emit('didCreate');
+		}
 	}
 
 	destroy(...args) {
-		this.willDestroy(...args);
-        this.objects.forEach(object => object.destroy(...args));
-        this.ui.forEach(object => object.destroy(...args));
-		this.didDestroy(...args);
-        this.camera = null;
+        if (this[this.constructor.STATE] === this.constructor.STATES.CREATED) {
+			this.enable = false;
+
+			this.willDestroy(...args);
+			this.event.emit('willDestroy');
+			this[this.constructor.STATE] = this.constructor.STATES.DESTROYED;
+            this.objects.forEach(object => object.destroy(...args));
+            this.ui.forEach(object => object.destroy(...args));
+			this.didDestroy(...args);
+			this.event.emit('didDestroy');
+
+            this.application = null;
+            this.objects = null;
+            this.ui = null;
+            this.camera = null;
+		}
 	}
 
     update(deltaTime, events, input) {
-		this.willUpdate(deltaTime, events, input);
-        this.objects.forEach(object => object.update(deltaTime, events, input));
-        this.ui.forEach(object => object.update(deltaTime, events, input));
-		this.didUpdate(deltaTime, events, input);
+        if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
+			this.willUpdate(deltaTime, events, input);
+			this.event.emit('willUpdate');
+            this.objects.forEach(object => object.update(deltaTime, events, input));
+            this.ui.forEach(object => object.update(deltaTime, events, input));
+			this.didUpdate(deltaTime, events, input);
+			this.event.emit('didUpdate');
+		}
 	}
 
 	render(context, screen, screens) {
-		this.willRender(context, screen, screens);
-        const camera = this.camera;
+        if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
+			this.willRender(context, screen, screens);
+			this.event.emit('willRender');
 
-        if (camera) {
-            context.save();
-            context.translate(screen.width / 2, screen.height / 2);
-            context.translate(-Math.floor(camera.position[0]), -Math.floor(camera.position[1]));
-        }
+            const camera = this.camera;
 
-        this.objects.forEach(object => object.render(context, screen, screens));
+            if (camera) {
+                context.save();
+                context.translate(screen.width / 2, screen.height / 2);
+                context.translate(-Math.floor(camera.position[0]), -Math.floor(camera.position[1]));
+            }
 
-        if (camera) {
-            context.restore();
-        }
+            this.objects.forEach(object => object.render(context, screen, screens));
 
-		this.ui.forEach(object => object.render(context, screen, screens));
-		this.didRender(context, screen, screens);
+            if (camera) {
+                context.restore();
+            }
+
+            this.ui.forEach(object => object.render(context, screen, screens));
+
+			this.didRender(context, screen, screens);
+			this.event.emit('didRender');
+		}
 	}
 
-    add(object) {
+    add(object, creation=true) {
         const ui = object.tags.has('ui');
         const target = ui ? this.ui : this.objects;
 
         target.push(object);
         object.parent = this;
-        if (this._created) {
+
+        if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && creation) {
             object.create();
         }
     }
 
-    remove(object, destroy=true) {
+    remove(object, destruction=true) {
         const ui = object.tags.has('ui');
         const target = ui ? this.ui : this.objects;
 
@@ -86,9 +100,15 @@ export class Scene extends BaseObject {
         if (index >= 0) {
             target.splice(index, 1);
             object.parent = null;
-            if (this._created && destroy) {
+
+            if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && destruction) {
                 object.destroy();
             }
+
+            return object;
+        }
+        else {
+            return null;
         }
     }
 

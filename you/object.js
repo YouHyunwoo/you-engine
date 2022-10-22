@@ -3,24 +3,25 @@ import { Stateful } from "./framework/object.js";
 
 export class Object extends Stateful {
 
+	name = null;
+	tags = new Set();
+	components = [];
+	objects = [];
+	parent = null;
+
 	constructor({
-		events={},
 		name='', enable=true,
 		tags=[],
 		components=[],
 		objects=[],
+		events={},
 	}={}) {
 		super({
-			events,
 			enable,
+			events,
 		});
 
 		this.name = name;
-		this.parent = null;
-		this.tags = new Set();
-		this.components = [];
-		this.objects = [];
-
 		tags.forEach(tag => this.tags.add(tag));
 		components.forEach(component => this.addComponent(component));
 		objects.forEach(object => this.add(object));
@@ -29,62 +30,77 @@ export class Object extends Stateful {
 	get root() { return this.parent?.root ?? this.parent }
 
 	create(...args) {
-		if (this._created) { return }
-		this.willCreate(...args);
-		this.event.emit('willCreate');
-		this._created = true;
-		this.components.forEach(component => component.create(...args));
-		this.objects.forEach(object => object.create(...args));
-		this.didCreate(...args);
-		this.event.emit('didCreate');
-	}
-
-	destroy(...args) {
-		if (!this._created || this._destroyed) { return }
-		this.willDestroy(...args);
-		this.event.emit('willDestroy');
-		this._destroyed = true;
-		this.components.forEach(component => component.destroy(...args));
-		this.objects.forEach(object => object.destroy(...args));
-		this.didDestroy(...args);
-		this.event.emit('didDestroy');
-		this.parent?.remove(this, false);
-	}
-
-	update(deltaTime, events, input) {
-		if (!this._enabled || !this._created || this._destroyed) { return }
-		this.willUpdate(deltaTime, events, input);
-		this.components.forEach(component => component.update(deltaTime, events, input));
-		this.objects.forEach(object => object.update(deltaTime, events, input));
-		this.didUpdate(deltaTime, events, input);
-	}
-
-	render(context, screen, screens) {
-		if (!this._enabled || !this._created || this._destroyed) { return }
-		this.willRender(context, screen, screens);
-		this.components.forEach(component => component.render(context, screen, screens));
-		this.objects.forEach(object => object.render(context, screen, screens));
-		this.didRender(context, screen, screens);
-	}
-
-	add(object) {
-		this.objects.push(object);
-        object.parent = this;
-		if (this._created) {
-			object.create();
+		if (this[this.constructor.STATE] === this.constructor.STATES.INSTANTIATED) {
+			this.willCreate(...args);
+			this.event.emit('willCreate');
+			this[this.constructor.STATE] = this.constructor.STATES.CREATED;
+			this.components.forEach(component => component.create(...args));
+			this.objects.forEach(object => object.create(...args));
+			this.didCreate(...args);
+			this.event.emit('didCreate');
 		}
 	}
 
-	remove(object, destroy=true) {
+	destroy(...args) {
+		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED) {
+			this.enable = false;
+
+			this.willDestroy(...args);
+			this.event.emit('willDestroy');
+			this[this.constructor.STATE] = this.constructor.STATES.DESTROYED;
+			this.components.forEach(component => component.destroy(...args));
+			this.objects.forEach(object => object.destroy(...args));
+			this.didDestroy(...args);
+			this.event.emit('didDestroy');
+
+			this.name = null;
+			this.tags = null;
+			this.components = null;
+			this.objects = null;
+			this.parent = null;
+		}
+	}
+
+	update(deltaTime, events, input) {
+		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
+			this.willUpdate(deltaTime, events, input);
+			this.event.emit('willUpdate');
+			this.components.forEach(component => component.update(deltaTime, events, input));
+			this.objects.forEach(object => object.update(deltaTime, events, input));
+			this.didUpdate(deltaTime, events, input);
+			this.event.emit('didUpdate');
+		}
+	}
+
+	render(context, screen, screens) {
+		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
+			this.willRender(context, screen, screens);
+			this.event.emit('willRender');
+			this.components.forEach(component => component.render(context, screen, screens));
+			this.objects.forEach(object => object.render(context, screen, screens));
+			this.didRender(context, screen, screens);
+			this.event.emit('didRender');
+		}
+	}
+
+	add(object) {
+		if (object === undefined || object === null) { throw 'object is null' }
+
+		this.objects.push(object);
+        object.parent = this;
+	}
+
+	remove(object) {
 		const index = this.objects.indexOf(object);
 
         if (index >= 0) {
             this.objects.splice(index, 1);
-			if (this._created && destroy) {
-				object.destroy();
-			}
 			object.parent = null;
+			return object;
         }
+		else {
+			return null;
+		}
 	}
 
 	find(name) {

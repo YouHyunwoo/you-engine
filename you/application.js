@@ -1,13 +1,20 @@
-import { Base as BaseObject } from "./framework/object.js";
+import { Loopable } from "./framework/object.js";
 
 
-export class Application extends BaseObject {
+export class Application extends Loopable {
 
-	constructor() {
-		super();
+	engine = null;
+	mainScreen = null;
 
-		this.engine = null;
-		this.mainScreen = null;
+	constructor({
+		events={},
+		mainScreen=null,
+	}={}) {
+		super({
+			events,
+		});
+
+		this.mainScreen = mainScreen;
 	}
 
 	get screen() { return this.engine.output.screens[this.mainScreen] }
@@ -28,11 +35,7 @@ export class Application extends BaseObject {
 
 export class SceneApplication extends Application {
 
-	constructor() {
-		super();
-
-		this.scenes = [];
-	}
+	scenes = [];
 
 	push(scene, ...args) {
 		this.scenes.unshift(scene);
