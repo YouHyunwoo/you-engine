@@ -4,10 +4,14 @@ import { Maze } from "./maze.js";
 
 export class MazeGeneration extends Application {
 
-	constructor() {
-		super();
-
-		this.mainScreen = 'default';
+	constructor({
+		events={},
+		mainScreen=null,
+	}={}) {
+		super({
+			events,
+			mainScreen,
+		});
 
 		this.maze = new Maze(20, 20);
 		this.maze.spawn(0, 0);

@@ -10,7 +10,7 @@ const configurations = {
         }
     },
     applications: [
-        new MazeGeneration(),
+        new MazeGeneration({ mainScreen: 'default' }),
     ]
 }
 
