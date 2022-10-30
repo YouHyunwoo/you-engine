@@ -10,38 +10,38 @@ export class Progress {
         this.value = 0;
     }
 
-    update(delta) {
+    update(delta, ...args) {
         if (!this.repeat &&
             (this.speed > 0 && this.value >= 1 || this.speed < 0 && this.value <= 0)) { return }
         this.value += delta * this.speed;
 
-        this.event.emit('update', this.value);
+        this.event.emit('update', this.value, ...args);
 
         if (this.value >= 1) {
             if (!this.repeat) {
                 this.value = 1;
-                this.event.emit('finish', this.value);
+                this.event.emit('finish', this.value, ...args);
             }
             else {
                 const count = Math.trunc(this.value);
                 this.value -= count;
 
                 for (let i = 0; i < count; i++) {
-                    this.event.emit('exceed');
+                    this.event.emit('exceed', this.value, ...args);
                 }
             }
         }
         else if (this.value <= 0) {
             if (!this.repeat) {
                 this.value = 0;
-                this.event.emit('finish', this.value);
+                this.event.emit('finish', this.value, ...args);
             }
             else {
                 const count = Math.trunc(this.value);
                 this.value -= count;
 
                 for (let i = 0; i < -count; i++) {
-                    this.event.emit('exceed');
+                    this.event.emit('exceed', this.value, ...args);
                 }
             }
         }
