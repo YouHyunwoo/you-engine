@@ -55,11 +55,10 @@ export class Object extends Stateful {
 			this.didDestroy(...args);
 			this.event.emit('didDestroy');
 
-			this.name = null;
-			this.tags = null;
-			this.components = null;
-			this.objects = null;
-			this.parent = null;
+			if (this.parent) {
+				this.parent.remove(this);
+				this.parent = null;
+			}
 		}
 	}
 
