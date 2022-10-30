@@ -43,6 +43,8 @@ export class Object extends Stateful {
 
 	destroy(...args) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED) {
+			this[this.constructor.STATE] = this.constructor.STATES.DESTROYING;
+
 			this.enable = false;
 
 			this.willDestroy(...args);
