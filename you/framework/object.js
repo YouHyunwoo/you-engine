@@ -120,6 +120,7 @@ export class Stateful extends Enable {
 	static STATES = {
 		INSTANTIATED: Symbol('state.instantiated'),
 		CREATED: Symbol('state.created'),
+		DESTROYING: Symbol('state.destroying'),
 		DESTROYED: Symbol('state.destroyed'),
 	};
 
@@ -149,6 +150,8 @@ export class Stateful extends Enable {
 	get destroyed() { return this[this.constructor.STATE] === this.constructor.STATES.DESTROYED }
 	destroy(...args) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED) {
+			this[this.constructor.STATE] = this.constructor.STATES.DESTROYING;
+
 			this.enable = false;
 
 			this.willDestroy(...args);
@@ -161,6 +164,7 @@ export class Stateful extends Enable {
 
 	get enable() { return this[this.constructor.ENABLE] }
 	set enable(value) {
+		if (this[this.constructor.STATE] === this.constructor.STATES.DESTROYING) { return }
 		if (this[this.constructor.STATE] === this.constructor.STATES.DESTROYED) { return }
 
 		if (value === true) {
