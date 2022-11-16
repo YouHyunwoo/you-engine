@@ -32,12 +32,12 @@ export class Object extends Stateful {
 	create(...args) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.INSTANTIATED) {
 			this.willCreate(...args);
-			this.event.emit('willCreate');
+			this.event.emit('willCreate', ...args);
 			this[this.constructor.STATE] = this.constructor.STATES.CREATED;
 			this.components.forEach(component => component.create(...args));
 			this.objects.forEach(object => object.create(...args));
 			this.didCreate(...args);
-			this.event.emit('didCreate');
+			this.event.emit('didCreate', ...args);
 		}
 	}
 
@@ -48,12 +48,12 @@ export class Object extends Stateful {
 			this.enable = false;
 
 			this.willDestroy(...args);
-			this.event.emit('willDestroy');
+			this.event.emit('willDestroy', ...args);
 			this[this.constructor.STATE] = this.constructor.STATES.DESTROYED;
 			this.components.forEach(component => component.destroy(...args));
 			this.objects.forEach(object => object.destroy(...args));
 			this.didDestroy(...args);
-			this.event.emit('didDestroy');
+			this.event.emit('didDestroy', ...args);
 
 			if (this.parent) {
 				this.parent.remove(this);
@@ -65,22 +65,22 @@ export class Object extends Stateful {
 	update(deltaTime, events, input) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
 			this.willUpdate(deltaTime, events, input);
-			this.event.emit('willUpdate');
+			this.event.emit('willUpdate', deltaTime, events, input);
 			this.components.forEach(component => component.update(deltaTime, events, input));
 			this.objects.forEach(object => object.update(deltaTime, events, input));
 			this.didUpdate(deltaTime, events, input);
-			this.event.emit('didUpdate');
+			this.event.emit('didUpdate', deltaTime, events, input);
 		}
 	}
 
 	render(context, screen, screens) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
 			this.willRender(context, screen, screens);
-			this.event.emit('willRender');
+			this.event.emit('willRender', context, screen, screens);
 			this.components.forEach(component => component.render(context, screen, screens));
 			this.objects.forEach(object => object.render(context, screen, screens));
 			this.didRender(context, screen, screens);
-			this.event.emit('didRender');
+			this.event.emit('didRender', context, screen, screens);
 		}
 	}
 
