@@ -14,11 +14,11 @@ export class Scene extends Stateful {
             this.camera = new Camera(this.application.screen);
 
 			this.willCreate(...args);
-			this.event.emit('willCreate');
+			this.event.emit('willCreate', ...args);
 			this[this.constructor.STATE] = this.constructor.STATES.CREATED;
             this.objects.forEach(object => object.create(...args));
 			this.didCreate(...args);
-			this.event.emit('didCreate');
+			this.event.emit('didCreate', ...args);
 		}
 	}
 
@@ -27,11 +27,11 @@ export class Scene extends Stateful {
 			this.enable = false;
 
 			this.willDestroy(...args);
-			this.event.emit('willDestroy');
+			this.event.emit('willDestroy', ...args);
 			this[this.constructor.STATE] = this.constructor.STATES.DESTROYED;
             this.objects.forEach(object => object.destroy(...args));
 			this.didDestroy(...args);
-			this.event.emit('didDestroy');
+			this.event.emit('didDestroy', ...args);
 
             this.application = null;
             this.objects = null;
@@ -42,17 +42,17 @@ export class Scene extends Stateful {
     update(deltaTime, events, input) {
         if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
 			this.willUpdate(deltaTime, events, input);
-			this.event.emit('willUpdate');
+			this.event.emit('willUpdate', deltaTime, events, input);
             this.objects.forEach(object => object.update(deltaTime, events, input));
 			this.didUpdate(deltaTime, events, input);
-			this.event.emit('didUpdate');
+			this.event.emit('didUpdate', deltaTime, events, input);
 		}
 	}
 
 	render(context, screen, screens) {
         if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
 			this.willRender(context, screen, screens);
-			this.event.emit('willRender');
+			this.event.emit('willRender', context, screen, screens);
 
             const camera = this.camera;
 
@@ -75,7 +75,7 @@ export class Scene extends Stateful {
             });
 
 			this.didRender(context, screen, screens);
-			this.event.emit('didRender');
+			this.event.emit('didRender', context, screen, screens);
 		}
 	}
 
