@@ -1,12 +1,12 @@
 import { Stateful } from "./framework/object.js";
 import { Camera } from "./camera.js";
+import { UIObject } from "./ui/object.js";
 
 
 export class Scene extends Stateful {
 
     application = null;
     objects = [];
-    ui = [];
     camera = null;
 
     create(...args) {
@@ -17,7 +17,6 @@ export class Scene extends Stateful {
 			this.event.emit('willCreate');
 			this[this.constructor.STATE] = this.constructor.STATES.CREATED;
             this.objects.forEach(object => object.create(...args));
-            this.ui.forEach(object => object.create(...args));
 			this.didCreate(...args);
 			this.event.emit('didCreate');
 		}
@@ -31,13 +30,11 @@ export class Scene extends Stateful {
 			this.event.emit('willDestroy');
 			this[this.constructor.STATE] = this.constructor.STATES.DESTROYED;
             this.objects.forEach(object => object.destroy(...args));
-            this.ui.forEach(object => object.destroy(...args));
 			this.didDestroy(...args);
 			this.event.emit('didDestroy');
 
             this.application = null;
             this.objects = null;
-            this.ui = null;
             this.camera = null;
 		}
 	}
@@ -47,7 +44,6 @@ export class Scene extends Stateful {
 			this.willUpdate(deltaTime, events, input);
 			this.event.emit('willUpdate');
             this.objects.forEach(object => object.update(deltaTime, events, input));
-            this.ui.forEach(object => object.update(deltaTime, events, input));
 			this.didUpdate(deltaTime, events, input);
 			this.event.emit('didUpdate');
 		}
@@ -66,13 +62,17 @@ export class Scene extends Stateful {
                 context.translate(-Math.floor(camera.position[0]), -Math.floor(camera.position[1]));
             }
 
-            this.objects.forEach(object => object.render(context, screen, screens));
+            this.objects.forEach(object => {
+                if (!(object instanceof UIObject)) { object.render(context, screen, screens) }
+            });
 
             if (camera) {
                 context.restore();
             }
 
-            this.ui.forEach(object => object.render(context, screen, screens));
+            this.objects.forEach(object => {
+                if (object instanceof UIObject) { object.render(context, screen, screens) }
+            });
 
 			this.didRender(context, screen, screens);
 			this.event.emit('didRender');
@@ -80,10 +80,7 @@ export class Scene extends Stateful {
 	}
 
     add(object, creation=true) {
-        const ui = object.tags.has('ui');
-        const target = ui ? this.ui : this.objects;
-
-        target.push(object);
+        this.objects.push(object);
         object.parent = this;
 
         if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && creation) {
@@ -92,13 +89,10 @@ export class Scene extends Stateful {
     }
 
     remove(object, destruction=true) {
-        const ui = object.tags.has('ui');
-        const target = ui ? this.ui : this.objects;
-
-        const index = target.indexOf(object);
+        const index = this.objects.indexOf(object);
 
         if (index >= 0) {
-            target.splice(index, 1);
+            this.objects.splice(index, 1);
             object.parent = null;
 
             if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && destruction) {
@@ -113,13 +107,11 @@ export class Scene extends Stateful {
     }
 
     find(name) {
-        return this.objects.find(object => object.name === name)
-                ?? this.ui.find(object => object.name === name)
+        return this.objects.find(object => object.name === name);
     }
 
     findAll(name) {
-        return this.objects.filter(object => object.name === name)
-                .concat(this.ui.filter(object => object.name === name))
+        return this.objects.filter(object => object.name === name);
     }
 
     push(scene, ...enterArgs) {
