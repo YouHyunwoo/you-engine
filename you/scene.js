@@ -1,6 +1,6 @@
 import { Stateful } from "./framework/object.js";
 import { Camera } from "./camera.js";
-import { UIObject } from "./ui/object.js";
+import { View } from "./ui/view.js";
 
 
 export class Scene extends Stateful {
@@ -63,7 +63,7 @@ export class Scene extends Stateful {
             }
 
             this.objects.forEach(object => {
-                if (!(object instanceof UIObject)) { object.render(context, screen, screens) }
+                if (!(object instanceof View)) { object.render(context, screen, screens) }
             });
 
             if (camera) {
@@ -71,13 +71,21 @@ export class Scene extends Stateful {
             }
 
             this.objects.forEach(object => {
-                if (object instanceof UIObject) { object.render(context, screen, screens) }
+                if (object instanceof View) { object.render(context, screen, screens) }
             });
 
 			this.didRender(context, screen, screens);
 			this.event.emit('didRender', context, screen, screens);
 		}
 	}
+
+    handleUIEvent(events) {
+        if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
+            for (let i = this.objects.length - 1; i >= 0; i--) {
+                this.objects[i].handleUIEvent?.(events);
+            }
+        }
+    }
 
     add(object, creation=true) {
         this.objects.push(object);

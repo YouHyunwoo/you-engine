@@ -67,6 +67,8 @@ export class SceneApplication extends Application {
 			}
 		}
 
+		this.scenes[0]?.handleUIEvent(args[1]);
+
 		this.willUpdate(...args);
 		this.scenes[0]?.update(...args);
 		this.didUpdate(...args);
