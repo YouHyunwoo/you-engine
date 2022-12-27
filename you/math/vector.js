@@ -88,6 +88,13 @@ Object.defineProperty(Array.prototype, 'normalized', {
     }
 });
 
+Object.defineProperty(Array.prototype, 'center', {
+    get() {
+        if (this.length !== 4) { throw 'length error' }
+        return [this[0] + this[2] / 2, this[1] + this[3] / 2];
+    }
+});
+
 Array.zeros = function (...shape) {
     if (shape.length < 1) {
         throw Error();
