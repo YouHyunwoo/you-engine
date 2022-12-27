@@ -36,30 +36,37 @@ export class Application extends Loopable {
 export class SceneApplication extends Application {
 
 	scenes = [];
+	queue = [];
 
 	push(scene, ...args) {
-		this.scenes.unshift(scene);
-		scene.application = this;
-		scene.create(...args);
-
-		this?.engine?.input.clear();
+		this.queue.push({ type:'push', scene, args });
 	}
 
 	pop(...args) {
-		const scene = this.scenes.shift();
-		scene.destroy(...args);
-		scene.application = null;
-
-		return scene;
+		this.queue.add({ type: 'pop', args });
 	}
 
 	transit(scene, { exitArgs=[], enterArgs=[] }={}) {
-		const oldScene = this.pop(...exitArgs);
+		this.pop(...exitArgs);
 		this.push(scene, ...enterArgs);
-		return oldScene;
 	}
 
 	update(...args) {
+		while (this.queue.length > 0) {
+			const item = this.queue.shift();
+			if (item.type === 'push') {
+				const scene = item.scene;
+				this.scenes.unshift(scene);
+				scene.application = this;
+				scene.create(...item.args);
+			}
+			else if (item.type === 'pop') {
+				const scene = this.scenes.shift();
+				scene.destroy(...item.args);
+				scene.application = null;
+			}
+		}
+
 		this.willUpdate(...args);
 		this.scenes[0]?.update(...args);
 		this.didUpdate(...args);
