@@ -89,6 +89,10 @@ export class Object extends Stateful {
 
 		this.objects.push(object);
         object.parent = this;
+
+		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED) {
+			object.create();
+		}
 	}
 
 	remove(object) {
@@ -96,6 +100,9 @@ export class Object extends Stateful {
 
         if (index >= 0) {
             this.objects.splice(index, 1);
+			if (this[this.constructor.STATE] !== this.constructor.STATES.INSTANTIATED) {
+				object.destroy();
+			}
 			object.parent = null;
 			return object;
         }
