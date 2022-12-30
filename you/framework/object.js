@@ -12,18 +12,18 @@ export class Object {
 
 	create(...args) {
 		this.willCreate(...args);
-		this.event.emit('willCreate');
+		this.event.emit('willCreate', ...args);
 		this.didCreate(...args);
-		this.event.emit('didCreate');
+		this.event.emit('didCreate', ...args);
 	}
 	willCreate(...args) {}
 	didCreate(...args) {}
 
 	destroy(...args) {
 		this.willDestroy(...args);
-		this.event.emit('willDestroy');
+		this.event.emit('willDestroy', ...args);
 		this.didDestroy(...args);
-		this.event.emit('didDestroy');
+		this.event.emit('didDestroy', ...args);
 	}
 	willDestroy(...args) {}
 	didDestroy(...args) {}
@@ -41,18 +41,18 @@ export class Loopable extends Object {
 
 	update(deltaTime, events, input) {
 		this.willUpdate(deltaTime, events, input);
-		this.event.emit('willUpdate');
+		this.event.emit('willUpdate', deltaTime, events, input);
 		this.didUpdate(deltaTime, events, input);
-		this.event.emit('didUpdate');
+		this.event.emit('didUpdate', deltaTime, events, input);
 	}
 	willUpdate(deltaTime, events, input) {}
 	didUpdate(deltaTime, events, input) {}
 
 	render(context, screen, screens) {
 		this.willRender(context, screen, screens);
-		this.event.emit('willRender');
+		this.event.emit('willRender', context, screen, screens);
 		this.didRender(context, screen, screens);
-		this.event.emit('didRender');
+		this.event.emit('didRender', context, screen, screens);
 	}
 	willRender(screens) {}
 	didRender(screens) {}
@@ -77,17 +77,17 @@ export class Enable extends Loopable {
 	set enable(value) {
 		if (value === true) {
 			this.willBeEnabled();
-			this.event.emit('willBeEnabled');
+			this.event.emit('willBeEnabled', value);
 			this[this.constructor.ENABLE] = value;
 			this.didBeEnabled();
-			this.event.emit('didBeEnabled');
+			this.event.emit('didBeEnabled', value);
 		}
 		else if (value === false) {
 			this.willBeDisabled();
-			this.event.emit('willBeDisabled');
+			this.event.emit('willBeDisabled', value);
 			this[this.constructor.ENABLE] = value;
 			this.didBeDisabled();
-			this.event.emit('didBeDisabled');
+			this.event.emit('didBeDisabled', value);
 		}
 	}
 	willBeEnabled() {}
@@ -98,18 +98,18 @@ export class Enable extends Loopable {
 	update(deltaTime, events, input) {
 		if (this[this.constructor.ENABLE]) {
 			this.willUpdate(deltaTime, events, input);
-			this.event.emit('willUpdate');
+			this.event.emit('willUpdate', deltaTime, events, input);
 			this.didUpdate(deltaTime, events, input);
-			this.event.emit('didUpdate');
+			this.event.emit('didUpdate', deltaTime, events, input);
 		}
 	}
 
 	render(context, screen, screens) {
 		if (this[this.constructor.ENABLE]) {
 			this.willRender(context, screen, screens);
-			this.event.emit('willRender');
+			this.event.emit('willRender', context, screen, screens);
 			this.didRender(context, screen, screens);
-			this.event.emit('didRender');
+			this.event.emit('didRender', context, screen, screens);
 		}
 	}
 }
@@ -140,10 +140,10 @@ export class Stateful extends Enable {
 	create(...args) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.INSTANTIATED) {
 			this.willCreate(...args);
-			this.event.emit('willCreate');
+			this.event.emit('willCreate', ...args);
 			this[this.constructor.STATE] = this.constructor.STATES.CREATED;
 			this.didCreate(...args);
-			this.event.emit('didCreate');
+			this.event.emit('didCreate', ...args);
 		}
 	}
 
@@ -155,10 +155,10 @@ export class Stateful extends Enable {
 			this.enable = false;
 
 			this.willDestroy(...args);
-			this.event.emit('willDestroy');
+			this.event.emit('willDestroy', ...args);
 			this[this.constructor.STATE] = this.constructor.STATES.DESTROYED;
 			this.didDestroy(...args);
-			this.event.emit('didDestroy');
+			this.event.emit('didDestroy', ...args);
 		}
 	}
 
@@ -169,35 +169,35 @@ export class Stateful extends Enable {
 
 		if (value === true) {
 			this.willBeEnabled();
-			this.event.emit('willBeEnabled');
+			this.event.emit('willBeEnabled', value);
 			this[this.constructor.ENABLE] = value;
 			this.didBeEnabled();
-			this.event.emit('didBeEnabled');
+			this.event.emit('didBeEnabled', value);
 		}
 		else if (value === false) {
 			this.willBeDisabled();
-			this.event.emit('willBeDisabled');
+			this.event.emit('willBeDisabled', value);
 			this[this.constructor.ENABLE] = value;
 			this.didBeDisabled();
-			this.event.emit('didBeDisabled');
+			this.event.emit('didBeDisabled', value);
 		}
 	}
 
 	update(deltaTime, events, input) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
 			this.willUpdate(deltaTime, events, input);
-			this.event.emit('willUpdate');
+			this.event.emit('willUpdate', deltaTime, events, input);
 			this.didUpdate(deltaTime, events, input);
-			this.event.emit('didUpdate');
+			this.event.emit('didUpdate', deltaTime, events, input);
 		}
 	}
 
 	render(context, screen, screens) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
 			this.willRender(context, screen, screens);
-			this.event.emit('willRender');
+			this.event.emit('willRender', context, screen, screens);
 			this.didRender(context, screen, screens);
-			this.event.emit('didRender');
+			this.event.emit('didRender', context, screen, screens);
 		}
 	}
 }
