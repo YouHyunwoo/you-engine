@@ -18,18 +18,18 @@ export class Component extends EnableObject {
     update(deltaTime, events, input) {
 		if (this[this.constructor.ENABLE] && this.object?.created) {
 			this.willUpdate(deltaTime, events, input);
-			this.event.emit('willUpdate');
+			this.event.emit('willUpdate', deltaTime, events, input);
 			this.didUpdate(deltaTime, events, input);
-			this.event.emit('didUpdate');
+			this.event.emit('didUpdate', deltaTime, events, input);
 		}
 	}
 
     render(context, screen, screens) {
 		if (this[this.constructor.ENABLE] && this.object?.created) {
 			this.willRender(context, screen, screens);
-			this.event.emit('willRender');
+			this.event.emit('willRender', context, screen, screens);
 			this.didRender(context, screen, screens);
-			this.event.emit('didRender');
+			this.event.emit('didRender', context, screen, screens);
 		}
 	}
 }
