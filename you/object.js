@@ -119,6 +119,10 @@ export class Object extends Stateful {
 		return this.objects.filter(object => object.name === name);
 	}
 
+	findByTags(...tags) {
+		return this.objects.filter(object => tags.some(taglist => taglist.every(tag => object.tags.has(tag))));
+	}
+
 	addComponent(component) {
         this.components.push(component);
         component.object = this;
