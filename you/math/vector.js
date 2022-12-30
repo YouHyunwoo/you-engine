@@ -38,28 +38,6 @@ Array.prototype.div = function (other) {
     }
 };
 
-Array.prototype.contains = function (point) {
-    if (this.length === 4) {
-        if (point.length === 2) {
-            return this[0] <= point[0] && point[0] < this[0] + this[2] &&
-                this[1] <= point[1] && point[1] < this[1] + this[3];
-        }
-    }
-
-    throw Error();
-};
-
-Array.prototype.intersects = function (area) {
-    if (this.length === 4) {
-        if (area.length === 4) {
-            return this[0] < area[0] + area[2] && area[0] < this[0] + this[2] &&
-                this[1] < area[1] + area[3] && area[1] < this[1] + this[3];
-        }
-    }
-
-    throw Error();
-};
-
 Array.prototype.equals = function (other) {
     if (this.length !== other.length) { throw Error() }
     return this.every((v, i) => v === other[i]);
@@ -85,13 +63,6 @@ Object.defineProperty(Array.prototype, 'magnitude', {
 Object.defineProperty(Array.prototype, 'normalized', {
     get() {
         return this.div(this.magnitude);
-    }
-});
-
-Object.defineProperty(Array.prototype, 'center', {
-    get() {
-        if (this.length !== 4) { throw 'length error' }
-        return [this[0] + this[2] / 2, this[1] + this[3] / 2];
     }
 });
 
