@@ -60,11 +60,9 @@ Object.defineProperty(Array.prototype, 'magnitude', {
     }
 });
 
-Object.defineProperty(Array.prototype, 'normalized', {
-    get() {
-        return this.div(this.magnitude);
-    }
-});
+Array.prototype.normalize = function () {
+    return this.div(this.magnitude);
+}
 
 Array.zeros = function (...shape) {
     if (shape.length < 1) {
