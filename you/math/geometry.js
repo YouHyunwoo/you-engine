@@ -95,3 +95,8 @@ Object.defineProperty(Array.prototype, 'center3d', {
         ];
     }
 });
+
+Array.prototype.clip = function (other) {
+    if (this.length * 2 !== other.length) { throw `'this' length(${this}) * 2 must be equal to 'other' length(${other.length})` }
+    return this.map((v, i) => Math.max(other[i], Math.min(v, other[i] + other[i + this.length])));
+};
