@@ -100,3 +100,32 @@ Array.prototype.clip = function (other) {
     if (this.length * 2 !== other.length) { throw `'this' length(${this}) * 2 must be equal to 'other' length(${other.length})` }
     return this.map((v, i) => Math.max(other[i], Math.min(v, other[i] + other[i + this.length])));
 };
+
+Array.prototype.enlarge = function (size, anchor=null) {
+    if (this.length !== size.length * 2) { throw `'this' length(${this.length}) must be equal to 'size' length(${size.length}) * 2` }
+    anchor = anchor ?? size.map(_ => .5);
+    if (size.length !== anchor.length) { throw `'size' length(${size.length}) must be equal to 'anchor' length(${anchor.length})` }
+
+    return [
+        ...this.slice(0, this.length / 2).map((v, i) => v - size[i] * anchor[i]),
+        ...this.slice(this.length / 2).map((v, i) => v + size[i])
+    ].align();
+};
+
+Array.prototype.shrink = function (size, anchor=null) {
+    if (this.length !== size.length * 2) { throw `'this' length(${this.length}) must be equal to 'size' length(${size.length}) * 2` }
+    anchor = anchor ?? size.map(_ => .5);
+    if (size.length !== anchor.length) { throw `'size' length(${size.length}) must be equal to 'anchor' length(${anchor.length})` }
+
+    return [
+        ...this.slice(0, this.length / 2).map((v, i) => v + size[i] * anchor[i]),
+        ...this.slice(this.length / 2).map((v, i) => v - size[i])
+    ].align();
+};
+
+Array.prototype.align = function () {
+    return [
+        ...this.slice(0, this.length / 2).map((v, i) => v + (this[i + this.length / 2] < 0 ? this[i + this.length / 2] : 0)),
+        ...this.slice(this.length / 2).map(Math.abs)
+    ];
+}
