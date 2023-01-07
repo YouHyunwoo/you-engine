@@ -59,6 +59,7 @@ export class Scene extends Stateful {
             if (camera) {
                 context.save();
                 context.translate(screen.width / 2, screen.height / 2);
+                context.scale(...camera.scale);
                 context.translate(-Math.floor(camera.position[0]), -Math.floor(camera.position[1]));
             }
 
