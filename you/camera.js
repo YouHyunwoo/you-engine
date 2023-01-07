@@ -7,19 +7,16 @@ export class Camera {
     }
 
     get scale() {
-        const canvasSize = this.screen.size;
+        const screenSize = this.screen.size;
         const cameraSize = this.size;
-
-        const scale = canvasSize.div(cameraSize);
-
+        const scale = screenSize.div(cameraSize);
         return scale;
     }
 
     set scale(value) {
-        const canvasSize = this.screen.size;
+        const screenSize = this.screen.size;
         const scale = value;
-        const cameraSize = canvasSize.mul(scale);
-
+        const cameraSize = screenSize.div(scale);
         this.size = cameraSize;
     }
 
@@ -42,7 +39,6 @@ export class Camera {
         const positionInCamera = positionInWorld.sub(this.position);
         const centerInViewport = positionInCamera.div(cameraSize);
         const positionInViewport = centerInViewport.add([0.5, 0.5]);
-
         const positionInScreen = positionInViewport.mul(screenSize);
 
         return positionInScreen;
