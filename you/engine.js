@@ -19,6 +19,7 @@ class Engine {
 	start() {
 		this.applications.forEach(app => {
 			app.engine = this;
+			app.load();
 			app.create();
 		});
 

@@ -1,23 +1,35 @@
 import { Loopable } from "./framework/object.js";
+import { Resource } from "./resource.js";
 
 
 export class Application extends Loopable {
 
 	engine = null;
-	mainScreen = null;
 
 	constructor({
 		events={},
 		mainScreen=null,
+		resourcePrefix,
 	}={}) {
 		super({
 			events,
 		});
 
 		this.mainScreen = mainScreen;
+
+		this.resources = new Resource({ prefix: resourcePrefix });
 	}
 
 	get screen() { return this.engine.output.screens[this.mainScreen] }
+
+	load(...args) {
+		this.willLoad(...args);
+		this.event.emit('willLoad', ...args);
+		this.didLoad(...args);
+		this.event.emit('didLoad', ...args);
+	}
+	willLoad(...args) {}
+	didLoad(...args) {}
 
 	render(screens) {
 		Object.keys(screens).forEach(screenId => {
