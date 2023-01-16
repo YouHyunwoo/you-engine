@@ -11,7 +11,7 @@ export class View extends Object {
 		objects=[],
 		events={},
         eventHandling=true,
-        position=[0, 0], size=[0, 0],
+        position=[0, 0], size,
         clip=true,
         backgroundColor=null,
         borderColor=null, borderWidth=1,
@@ -59,10 +59,20 @@ export class View extends Object {
     create(...args) {
 		if (this[this.constructor.STATE] === this.constructor.STATES.INSTANTIATED) {
             if (this.position instanceof Function) {
-                this.position = this.position.bind(this)(this);
+                this.position = this.position.bind(this)(this, this.parent?.objects?.indexOf(this) ?? undefined);
             }
-            if (this.size instanceof Function) {
-                this.size = this.size.bind(this)(this);
+            if ((this.size ?? null) === null) {
+                this.size = [null, null];
+            }
+            else if (this.size instanceof Function) {
+                this.size = this.size.bind(this)(this, this.parent?.objects?.indexOf(this) ?? undefined);
+            }
+
+            if (this.size[0] === null) {
+                this.size[0] = this.parent instanceof Scene ? this.scene.application.screen.size[0] : this.parent.size[0];
+            }
+            if (this.size[1] === null) {
+                this.size[1] = this.parent instanceof Scene ? this.scene.application.screen.size[1] : this.parent.size[1];
             }
 
 			this.willCreate(...args);
@@ -115,6 +125,8 @@ export class View extends Object {
 
     handleUIEvent(events) {
         if (this[this.constructor.STATE] === this.constructor.STATES.CREATED && this[this.constructor.ENABLE]) {
+            if (!this.size) { return }
+
             let area = [...this.globalPosition, ...this.size];
 
             const propagationEvents = new Set();
