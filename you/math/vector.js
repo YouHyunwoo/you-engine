@@ -89,7 +89,12 @@ Array.repeat = function (count, value) {
     return result;
 };
 
-Array.range = function* (start, end, step) {
+Array.range = function* (start, end=null, step=1) {
+    if (end === null) {
+        end = start;
+        start = 0;
+    }
+
     for (let i = start; i < end; i += step) {
         yield i;
     }
