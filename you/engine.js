@@ -5,7 +5,7 @@ import { Output } from "./framework/output.js";
 import { Screen } from "./screen.js";
 
 
-class Engine {
+export class Engine {
 
 	constructor() {
 		this.loop = new Loop(this);
@@ -40,25 +40,51 @@ class Engine {
 
 let engine = null;
 
-export function startEngine(configuration) {
-	if (engine) {
+export function run(configuration) {
+	if (engine !== null)
 		engine.stop();
-		engine = null;
-	}
 
 	engine = new Engine();
+	configureEngine(configuration, engine);
+	engine.start();
+}
 
-	const screens = configuration.screens;
-	const applications = configuration.applications;
+function configureEngine(configurations, engine) {
+	configureScreen(configurations.screens, engine);
+	configureApplications(configurations.applications, engine);
+}
 
-	Object.keys(screens).forEach(id => {
-		const configuration = screens[id];
-		const canvas = configuration.canvas;
+function configureScreen(screenConfigurations, engine) {
+	if (screenConfigurations == null) {
+		const id = 'default';
+		const size = [800, 600];
+		const canvasElement = document.createElement('canvas');
+		canvasElement.width = size[0];
+		canvasElement.height = size[1];
+		document.body.appendChild(canvasElement);
+		screenConfigurations = {
+			[id]: {
+				canvas: canvasElement,
+				size: size,
+			},
+		};
+		console.warn(`No screens configured for the engine. A default screen (${id}) has been created.`);
+	}
+
+	Object.keys(screenConfigurations).forEach(id => {
+		const configuration = screenConfigurations[id];
+		const canvasElement = configuration.canvas;
 		const size = configuration.size;
-		const screen = new Screen(id, size, canvas);
+		const screen = new Screen(id, size, canvasElement);
 		engine.output.addScreen(id, screen);
 	});
-	applications.forEach(app => engine.applications.push(app));
+}
 
-	engine.start();
+function configureApplications(applications, engine) {
+	if (applications == null) {
+		console.warn('No applications configured for the engine.');
+		return;
+	}
+
+	applications.forEach(app => engine.applications.push(app));
 }

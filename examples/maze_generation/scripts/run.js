@@ -1,4 +1,4 @@
-import { startEngine } from "../../../you/engine.js";
+import { You } from "../../../you/you.js";
 import { MazeGeneration } from "./mazeGeneration.js";
 
 
@@ -14,4 +14,4 @@ const configurations = {
     ]
 }
 
-startEngine(configurations);
+You.run(configurations);
