@@ -1,4 +1,4 @@
-import { Animation } from "../graphics/animation.js";
+// import { Animation } from "../graphics/animation.js";
 import { Image } from "../graphics/image.js";
 import { Sprite } from "../graphics/sprite.js";
 
@@ -94,12 +94,12 @@ async function parseString(string) {
         const sprite = new Sprite(data);
         return sprite;
     }
-    else if (prefix === 'sprite-animation' || prefix === 'spr-ani') {
-        const object = await loadJSON(url);
-        const data = await parse(object);
-        const animation = new Animation(data);
-        return animation;
-    }
+    // else if (prefix === 'sprite-animation' || prefix === 'spr-ani') {
+    //     const object = await loadJSON(url);
+    //     const data = await parse(object);
+    //     const animation = new Animation(data);
+    //     return animation;
+    // }
     else {
         const type = await parseCustomClassString(prefix);
         const object = await loadJSON(url);
