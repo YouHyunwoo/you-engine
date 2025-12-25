@@ -1,7 +1,10 @@
-import { Screen as BaseScreen } from "./framework/screen.js";
+import { Screen } from "./framework/screen.js";
 
 
-export class Screen extends BaseScreen {
+export class CanvasScreen extends Screen {
+
+	canvas = null;
+	context = null;
 
 	constructor(id, size, canvas) {
 		super(id, size);
@@ -9,7 +12,6 @@ export class Screen extends BaseScreen {
 		this.canvas = canvas;
 		this.canvas.width = size[0];
 		this.canvas.height = size[1];
-
 		this.context = canvas.getContext('2d');
 	}
 
@@ -41,7 +43,8 @@ export class Screen extends BaseScreen {
 
 	static createOffscreen(id, size) {
 		const offscreenCanvas = document.createElement('canvas');
+		offscreenCanvas.id = id;
 
-		return new Screen(id, size, offscreenCanvas);
+		return new CanvasScreen(id, size, offscreenCanvas);
 	}
 }

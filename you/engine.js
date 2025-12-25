@@ -2,7 +2,7 @@ import { Loop } from "./framework/loop.js";
 import { Event } from "./framework/event.js";
 import { Input } from "./framework/input.js";
 import { Output } from "./framework/output.js";
-import { Screen } from "./screen.js";
+import { CanvasScreen } from "./screen.js";
 
 
 export class Engine {
@@ -75,7 +75,7 @@ function configureScreen(screenConfigurations, engine) {
 		const configuration = screenConfigurations[id];
 		const canvasElement = configuration.canvas;
 		const size = configuration.size;
-		const screen = new Screen(id, size, canvasElement);
+		const screen = new CanvasScreen(id, size, canvasElement);
 		engine.output.addScreen(id, screen);
 	});
 }

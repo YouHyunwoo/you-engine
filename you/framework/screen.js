@@ -1,5 +1,8 @@
 export class Screen {
 
+	id = null;
+	_size = null;
+
     constructor(id, size) {
         this.id = id;
         this._size = size;
