@@ -4,19 +4,182 @@
 
 **Goal:** 폭발, 연기, 불꽃, 비 같은 시각 효과를 위한 파티클 시스템 구현
 
-**Architecture:** Particle이 개별 입자, ParticleEmitter가 파티클 생성/관리, ParticleSystem이 여러 이미터 통합 관리. 트위닝 시스템의 Easing 재사용
+**Architecture:** Particle이 개별 입자 데이터, ParticleEmitter가 파티클 생성/관리/렌더링, ParticleSystem이 여러 이미터 통합 관리. 오브젝트 풀링으로 GC 최소화
 
-**Tech Stack:** ES6 모듈, Vitest (jsdom), Canvas API, 기존 Easing/EventEmitter 활용
+**Tech Stack:** ES6 모듈, Canvas API, Vitest (jsdom), 기존 Easing/EventEmitter 활용
 
-**의존성:** `you/animation/easing.js` (트위닝 시스템 먼저 구현 필요)
+**의존성:** `you/animation/easing.js` (트위닝 시스템)
 
 ---
 
-## Task 1: Particle 클래스 (particle.js)
+## Task 1: 색상 유틸리티
+
+**Files:**
+- Create: `you/particle/color.js`
+- Create: `tests/particle-color.test.js`
+
+### Step 1: 테스트 파일 생성
+
+```javascript
+// tests/particle-color.test.js
+import { describe, it, expect } from 'vitest'
+import { parseColor, lerpColor, colorToString } from '../you/particle/color.js'
+
+describe('parseColor', () => {
+  it('6자리 hex 색상을 파싱한다', () => {
+    expect(parseColor('#ff0000')).toEqual([255, 0, 0, 1])
+    expect(parseColor('#00ff00')).toEqual([0, 255, 0, 1])
+    expect(parseColor('#0000ff')).toEqual([0, 0, 255, 1])
+  })
+
+  it('3자리 hex 색상을 파싱한다', () => {
+    expect(parseColor('#f00')).toEqual([255, 0, 0, 1])
+    expect(parseColor('#0f0')).toEqual([0, 255, 0, 1])
+  })
+
+  it('rgb 색상을 파싱한다', () => {
+    expect(parseColor('rgb(255, 128, 0)')).toEqual([255, 128, 0, 1])
+  })
+
+  it('rgba 색상을 파싱한다', () => {
+    expect(parseColor('rgba(255, 128, 0, 0.5)')).toEqual([255, 128, 0, 0.5])
+  })
+
+  it('잘못된 형식은 흰색을 반환한다', () => {
+    expect(parseColor('invalid')).toEqual([255, 255, 255, 1])
+  })
+})
+
+describe('lerpColor', () => {
+  it('두 색상을 선형 보간한다', () => {
+    const from = [255, 0, 0, 1]
+    const to = [0, 255, 0, 1]
+
+    const result = lerpColor(from, to, 0.5)
+
+    expect(result[0]).toBeCloseTo(127.5)
+    expect(result[1]).toBeCloseTo(127.5)
+    expect(result[2]).toBe(0)
+    expect(result[3]).toBe(1)
+  })
+
+  it('t=0이면 from 색상을 반환한다', () => {
+    const from = [255, 0, 0, 1]
+    const to = [0, 255, 0, 1]
+
+    expect(lerpColor(from, to, 0)).toEqual(from)
+  })
+
+  it('t=1이면 to 색상을 반환한다', () => {
+    const from = [255, 0, 0, 1]
+    const to = [0, 255, 0, 1]
+
+    expect(lerpColor(from, to, 1)).toEqual(to)
+  })
+})
+
+describe('colorToString', () => {
+  it('RGBA 배열을 문자열로 변환한다', () => {
+    expect(colorToString([255, 0, 0, 1])).toBe('rgba(255, 0, 0, 1)')
+    expect(colorToString([128, 64, 32, 0.5])).toBe('rgba(128, 64, 32, 0.5)')
+  })
+})
+```
+
+### Step 2: 테스트 실행하여 실패 확인
+
+Run: `pnpm test tests/particle-color.test.js`
+Expected: FAIL - 모듈을 찾을 수 없음
+
+### Step 3: 색상 유틸리티 구현
+
+```javascript
+// you/particle/color.js
+
+export function parseColor(color) {
+  // hex 6자리
+  if (color.match(/^#[0-9a-fA-F]{6}$/)) {
+    return [
+      parseInt(color.slice(1, 3), 16),
+      parseInt(color.slice(3, 5), 16),
+      parseInt(color.slice(5, 7), 16),
+      1,
+    ]
+  }
+
+  // hex 3자리
+  if (color.match(/^#[0-9a-fA-F]{3}$/)) {
+    return [
+      parseInt(color[1] + color[1], 16),
+      parseInt(color[2] + color[2], 16),
+      parseInt(color[3] + color[3], 16),
+      1,
+    ]
+  }
+
+  // rgb
+  const rgbMatch = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
+  if (rgbMatch) {
+    return [
+      parseInt(rgbMatch[1]),
+      parseInt(rgbMatch[2]),
+      parseInt(rgbMatch[3]),
+      1,
+    ]
+  }
+
+  // rgba
+  const rgbaMatch = color.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/)
+  if (rgbaMatch) {
+    return [
+      parseInt(rgbaMatch[1]),
+      parseInt(rgbaMatch[2]),
+      parseInt(rgbaMatch[3]),
+      parseFloat(rgbaMatch[4]),
+    ]
+  }
+
+  // 기본값
+  return [255, 255, 255, 1]
+}
+
+export function lerpColor(from, to, t) {
+  return [
+    from[0] + (to[0] - from[0]) * t,
+    from[1] + (to[1] - from[1]) * t,
+    from[2] + (to[2] - from[2]) * t,
+    from[3] + (to[3] - from[3]) * t,
+  ]
+}
+
+export function colorToString(rgba) {
+  return `rgba(${Math.round(rgba[0])}, ${Math.round(rgba[1])}, ${Math.round(rgba[2])}, ${rgba[3]})`
+}
+```
+
+### Step 4: 테스트 실행하여 통과 확인
+
+Run: `pnpm test tests/particle-color.test.js`
+Expected: PASS
+
+### Step 5: 커밋
+
+```bash
+git add you/particle/color.js tests/particle-color.test.js
+git commit -m "feat(particle): 색상 보간 유틸리티 추가
+
+- parseColor: hex(3,6), rgb, rgba 파싱
+- lerpColor: RGB 채널별 선형 보간
+- colorToString: rgba 문자열 변환"
+```
+
+---
+
+## Task 2: Particle 클래스
 
 **Files:**
 - Create: `you/particle/particle.js`
-- Test: `tests/particle.test.js`
+- Create: `tests/particle.test.js`
 
 ### Step 1: 테스트 파일 생성
 
@@ -27,7 +190,7 @@ import '../you/math/vector.js'
 import { Particle } from '../you/particle/particle.js'
 
 describe('Particle', () => {
-  describe('생성', () => {
+  describe('생성자', () => {
     it('기본값으로 생성할 수 있다', () => {
       const particle = new Particle()
 
@@ -142,7 +305,7 @@ describe('Particle', () => {
 })
 ```
 
-### Step 2: 테스트 실패 확인
+### Step 2: 테스트 실행하여 실패 확인
 
 Run: `pnpm test tests/particle.test.js`
 Expected: FAIL - 모듈을 찾을 수 없음
@@ -234,7 +397,7 @@ export class Particle {
 }
 ```
 
-### Step 4: 테스트 통과 확인
+### Step 4: 테스트 실행하여 통과 확인
 
 Run: `pnpm test tests/particle.test.js`
 Expected: PASS
@@ -247,182 +410,18 @@ git commit -m "feat(particle): Particle 클래스 추가
 
 - position, velocity, lifetime 기본 속성
 - gravity, friction 물리 효과
-- size, alpha, color, rotation 렌더링 속성
-- 오브젝트 풀링을 위한 reset() 메서드"
+- reset()으로 오브젝트 풀링 지원"
 ```
 
 ---
 
-## Task 2: 색상 보간 유틸리티
-
-**Files:**
-- Create: `you/particle/color.js`
-- Test: `tests/particle-color.test.js`
-
-### Step 1: 테스트 파일 생성
-
-```javascript
-// tests/particle-color.test.js
-import { describe, it, expect } from 'vitest'
-import { parseColor, lerpColor, colorToString } from '../you/particle/color.js'
-
-describe('parseColor', () => {
-  it('hex 색상을 파싱한다', () => {
-    expect(parseColor('#ff0000')).toEqual([255, 0, 0, 1])
-    expect(parseColor('#00ff00')).toEqual([0, 255, 0, 1])
-    expect(parseColor('#0000ff')).toEqual([0, 0, 255, 1])
-  })
-
-  it('3자리 hex 색상을 파싱한다', () => {
-    expect(parseColor('#f00')).toEqual([255, 0, 0, 1])
-    expect(parseColor('#0f0')).toEqual([0, 255, 0, 1])
-  })
-
-  it('rgb 색상을 파싱한다', () => {
-    expect(parseColor('rgb(255, 128, 0)')).toEqual([255, 128, 0, 1])
-  })
-
-  it('rgba 색상을 파싱한다', () => {
-    expect(parseColor('rgba(255, 128, 0, 0.5)')).toEqual([255, 128, 0, 0.5])
-  })
-})
-
-describe('lerpColor', () => {
-  it('두 색상을 선형 보간한다', () => {
-    const from = [255, 0, 0, 1]
-    const to = [0, 255, 0, 1]
-
-    const result = lerpColor(from, to, 0.5)
-
-    expect(result[0]).toBeCloseTo(127.5)
-    expect(result[1]).toBeCloseTo(127.5)
-    expect(result[2]).toBe(0)
-    expect(result[3]).toBe(1)
-  })
-
-  it('t=0이면 from 색상을 반환한다', () => {
-    const from = [255, 0, 0, 1]
-    const to = [0, 255, 0, 1]
-
-    const result = lerpColor(from, to, 0)
-
-    expect(result).toEqual(from)
-  })
-
-  it('t=1이면 to 색상을 반환한다', () => {
-    const from = [255, 0, 0, 1]
-    const to = [0, 255, 0, 1]
-
-    const result = lerpColor(from, to, 1)
-
-    expect(result).toEqual(to)
-  })
-})
-
-describe('colorToString', () => {
-  it('RGBA 배열을 문자열로 변환한다', () => {
-    expect(colorToString([255, 0, 0, 1])).toBe('rgba(255, 0, 0, 1)')
-    expect(colorToString([128, 64, 32, 0.5])).toBe('rgba(128, 64, 32, 0.5)')
-  })
-})
-```
-
-### Step 2: 테스트 실패 확인
-
-Run: `pnpm test tests/particle-color.test.js`
-Expected: FAIL - 모듈을 찾을 수 없음
-
-### Step 3: 색상 유틸리티 구현
-
-```javascript
-// you/particle/color.js
-
-export function parseColor(color) {
-  // hex 6자리
-  if (color.match(/^#[0-9a-fA-F]{6}$/)) {
-    return [
-      parseInt(color.slice(1, 3), 16),
-      parseInt(color.slice(3, 5), 16),
-      parseInt(color.slice(5, 7), 16),
-      1,
-    ]
-  }
-
-  // hex 3자리
-  if (color.match(/^#[0-9a-fA-F]{3}$/)) {
-    return [
-      parseInt(color[1] + color[1], 16),
-      parseInt(color[2] + color[2], 16),
-      parseInt(color[3] + color[3], 16),
-      1,
-    ]
-  }
-
-  // rgb
-  const rgbMatch = color.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/)
-  if (rgbMatch) {
-    return [
-      parseInt(rgbMatch[1]),
-      parseInt(rgbMatch[2]),
-      parseInt(rgbMatch[3]),
-      1,
-    ]
-  }
-
-  // rgba
-  const rgbaMatch = color.match(/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/)
-  if (rgbaMatch) {
-    return [
-      parseInt(rgbaMatch[1]),
-      parseInt(rgbaMatch[2]),
-      parseInt(rgbaMatch[3]),
-      parseFloat(rgbaMatch[4]),
-    ]
-  }
-
-  // 기본값
-  return [255, 255, 255, 1]
-}
-
-export function lerpColor(from, to, t) {
-  return [
-    from[0] + (to[0] - from[0]) * t,
-    from[1] + (to[1] - from[1]) * t,
-    from[2] + (to[2] - from[2]) * t,
-    from[3] + (to[3] - from[3]) * t,
-  ]
-}
-
-export function colorToString(rgba) {
-  return `rgba(${Math.round(rgba[0])}, ${Math.round(rgba[1])}, ${Math.round(rgba[2])}, ${rgba[3]})`
-}
-```
-
-### Step 4: 테스트 통과 확인
-
-Run: `pnpm test tests/particle-color.test.js`
-Expected: PASS
-
-### Step 5: 커밋
-
-```bash
-git add you/particle/color.js tests/particle-color.test.js
-git commit -m "feat(particle): 색상 보간 유틸리티 추가
-
-- parseColor: hex, rgb, rgba 파싱
-- lerpColor: RGB 채널별 선형 보간
-- colorToString: rgba 문자열 변환"
-```
-
----
-
-## Task 3: ParticleEmitter 클래스 (emitter.js)
+## Task 3: ParticleEmitter 클래스 - 기본 구조
 
 **Files:**
 - Create: `you/particle/emitter.js`
-- Test: `tests/emitter.test.js`
+- Create: `tests/emitter.test.js`
 
-### Step 1: 테스트 파일 생성
+### Step 1: 테스트 파일 생성 - 기본 구조
 
 ```javascript
 // tests/emitter.test.js
@@ -431,7 +430,7 @@ import '../you/math/vector.js'
 import { ParticleEmitter } from '../you/particle/emitter.js'
 
 describe('ParticleEmitter', () => {
-  describe('생성', () => {
+  describe('생성자', () => {
     it('기본값으로 생성할 수 있다', () => {
       const emitter = new ParticleEmitter()
 
@@ -512,104 +511,6 @@ describe('ParticleEmitter', () => {
     })
   })
 
-  describe('update()', () => {
-    it('rate에 따라 파티클이 생성된다', () => {
-      const emitter = new ParticleEmitter({
-        rate: 10,  // 초당 10개
-        maxParticles: 100,
-      })
-
-      emitter.start()
-      emitter.update(1)  // 1초
-
-      expect(emitter.particleCount).toBeGreaterThanOrEqual(10)
-    })
-
-    it('파티클이 업데이트된다', () => {
-      const emitter = new ParticleEmitter({
-        lifetime: [1, 1],
-        speed: [100, 100],
-        direction: [0, 0],  // 오른쪽
-      })
-
-      emitter.burst(1)
-      const initialX = emitter._particles[0].position[0]
-
-      emitter.update(0.5)
-
-      expect(emitter._particles[0].position[0]).toBeGreaterThan(initialX)
-    })
-
-    it('죽은 파티클은 제거된다 (풀로 반환)', () => {
-      const emitter = new ParticleEmitter({
-        lifetime: [0.1, 0.1],
-        maxParticles: 10,
-      })
-
-      emitter.burst(5)
-      expect(emitter.particleCount).toBe(5)
-
-      emitter.update(0.2)  // 수명 초과
-
-      expect(emitter.particleCount).toBe(0)
-    })
-
-    it('particleDeath 이벤트가 발생한다', () => {
-      const emitter = new ParticleEmitter({
-        lifetime: [0.1, 0.1],
-      })
-      const handler = vi.fn()
-      emitter.event.on('particleDeath', handler)
-
-      emitter.burst(1)
-      emitter.update(0.2)
-
-      expect(handler).toHaveBeenCalled()
-    })
-
-    it('모든 파티클 소멸 시 empty 이벤트가 발생한다', () => {
-      const emitter = new ParticleEmitter({
-        lifetime: [0.1, 0.1],
-      })
-      const handler = vi.fn()
-      emitter.event.on('empty', handler)
-
-      emitter.burst(1)
-      emitter.update(0.2)
-
-      expect(handler).toHaveBeenCalled()
-    })
-  })
-
-  describe('duration', () => {
-    it('duration 후에 자동으로 stop된다', () => {
-      const emitter = new ParticleEmitter({
-        duration: 1,
-        rate: 10,
-      })
-
-      emitter.start()
-      emitter.update(1.5)  // duration 초과
-
-      expect(emitter.running).toBe(false)
-    })
-
-    it('duration 끝 + empty 시 complete 이벤트가 발생한다', () => {
-      const emitter = new ParticleEmitter({
-        duration: 0.5,
-        lifetime: [0.1, 0.1],
-        rate: 10,
-      })
-      const handler = vi.fn()
-      emitter.event.on('complete', handler)
-
-      emitter.start()
-      emitter.update(1)  // duration 초과 + 파티클 소멸
-
-      expect(handler).toHaveBeenCalled()
-    })
-  })
-
   describe('clear() / reset()', () => {
     it('clear()로 모든 파티클을 즉시 제거한다', () => {
       const emitter = new ParticleEmitter()
@@ -624,7 +525,6 @@ describe('ParticleEmitter', () => {
       const emitter = new ParticleEmitter({ duration: 1 })
 
       emitter.start()
-      emitter.update(0.5)
       emitter.burst(10)
       emitter.reset()
 
@@ -633,51 +533,32 @@ describe('ParticleEmitter', () => {
     })
   })
 
-  describe('시간에 따른 변화', () => {
-    it('size가 변화한다', () => {
-      const emitter = new ParticleEmitter({
-        lifetime: [1, 1],
-        size: { from: 10, to: 0 },
-      })
-
-      emitter.burst(1)
-      emitter.update(0.5)  // 50% 진행
-
-      // 내부 파티클의 size는 interpolate로 계산됨
-      expect(emitter._particles[0].size).toBeCloseTo(5, 0)
-    })
-
-    it('alpha가 변화한다', () => {
-      const emitter = new ParticleEmitter({
-        lifetime: [1, 1],
-        alpha: { from: 1, to: 0 },
-      })
-
-      emitter.burst(1)
-      emitter.update(0.5)
-
-      expect(emitter._particles[0].alpha).toBeCloseTo(0.5, 1)
-    })
-  })
-
-  describe('setPosition()', () => {
-    it('이미터 위치를 변경한다', () => {
+  describe('setPosition() / setRate()', () => {
+    it('setPosition()으로 위치를 변경한다', () => {
       const emitter = new ParticleEmitter({ position: [0, 0] })
 
       emitter.setPosition(100, 200)
 
       expect(emitter.position).toEqual([100, 200])
     })
+
+    it('setRate()으로 생성률을 변경한다', () => {
+      const emitter = new ParticleEmitter({ rate: 10 })
+
+      emitter.setRate(20)
+
+      expect(emitter.rate).toBe(20)
+    })
   })
 })
 ```
 
-### Step 2: 테스트 실패 확인
+### Step 2: 테스트 실행하여 실패 확인
 
 Run: `pnpm test tests/emitter.test.js`
 Expected: FAIL - 모듈을 찾을 수 없음
 
-### Step 3: ParticleEmitter 클래스 구현
+### Step 3: ParticleEmitter 기본 구조 구현
 
 ```javascript
 // you/particle/emitter.js
@@ -744,7 +625,6 @@ export class ParticleEmitter {
     this._particles = []
     this._pool = []
     this._running = false
-    this._elapsed = 0
     this._spawnAccumulator = 0
     this._durationElapsed = 0
     this._durationEnded = false
@@ -764,15 +644,6 @@ export class ParticleEmitter {
       to: value.to ?? value,
       easing: value.easing ?? null,
     }
-  }
-
-  _randomRange(range) {
-    return range[0] + Math.random() * (range[1] - range[0])
-  }
-
-  _interpolate(transition, progress) {
-    const t = transition.easing ? transition.easing(progress) : progress
-    return transition.from + (transition.to - transition.from) * t
   }
 
   get running() {
@@ -809,7 +680,6 @@ export class ParticleEmitter {
   }
 
   clear() {
-    // 모든 파티클을 풀로 반환
     for (const particle of this._particles) {
       this._pool.push(particle)
     }
@@ -819,7 +689,6 @@ export class ParticleEmitter {
   reset() {
     this.clear()
     this._running = false
-    this._elapsed = 0
     this._spawnAccumulator = 0
     this._durationElapsed = 0
     this._durationEnded = false
@@ -832,6 +701,194 @@ export class ParticleEmitter {
 
   setRate(rate) {
     this.rate = rate
+  }
+
+  _randomRange(range) {
+    return range[0] + Math.random() * (range[1] - range[0])
+  }
+
+  _spawnParticle() {
+    let particle = this._pool.pop()
+    if (!particle) {
+      particle = new Particle()
+    }
+
+    const spawnX = this.position[0] + (Math.random() - 0.5) * 2 * this._spread
+    const spawnY = this.position[1] + (Math.random() - 0.5) * 2 * this._spread
+
+    const speed = this._randomRange(this._speed)
+    const directionDeg = this._randomRange(this._direction)
+    const directionRad = directionDeg * Math.PI / 180
+    const vx = Math.cos(directionRad) * speed
+    const vy = Math.sin(directionRad) * speed
+
+    particle.reset({
+      position: [spawnX, spawnY],
+      velocity: [vx, vy],
+      lifetime: this._randomRange(this._lifetime),
+      gravity: this._gravity,
+      friction: this._friction,
+      size: this._size.from,
+      alpha: this._alpha.from,
+      color: colorToString(this._color.from),
+      rotation: this._randomRange(this._rotation) * Math.PI / 180,
+      rotationSpeed: this._randomRange(this._rotationSpeed) * Math.PI / 180,
+    })
+
+    this._particles.push(particle)
+    this.event.emit('particleSpawn', particle)
+  }
+}
+```
+
+### Step 4: 테스트 실행하여 통과 확인
+
+Run: `pnpm test tests/emitter.test.js`
+Expected: PASS
+
+### Step 5: 커밋
+
+```bash
+git add you/particle/emitter.js tests/emitter.test.js
+git commit -m "feat(particle): ParticleEmitter 기본 구조 추가
+
+- start/stop/burst/clear/reset 제어
+- 오브젝트 풀링 구조
+- 파티클 생성 옵션 (lifetime, speed, direction 등)"
+```
+
+---
+
+## Task 4: ParticleEmitter 클래스 - update
+
+**Files:**
+- Modify: `you/particle/emitter.js`
+- Modify: `tests/emitter.test.js`
+
+### Step 1: update 테스트 추가
+
+```javascript
+// tests/emitter.test.js에 추가
+
+  describe('update()', () => {
+    it('rate에 따라 파티클이 생성된다', () => {
+      const emitter = new ParticleEmitter({
+        rate: 10,
+        maxParticles: 100,
+      })
+
+      emitter.start()
+      emitter.update(1)  // 1초
+
+      expect(emitter.particleCount).toBeGreaterThanOrEqual(10)
+    })
+
+    it('파티클이 업데이트된다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [1, 1],
+        speed: [100, 100],
+        direction: [0, 0],
+      })
+
+      emitter.burst(1)
+      const initialX = emitter._particles[0].position[0]
+
+      emitter.update(0.5)
+
+      expect(emitter._particles[0].position[0]).toBeGreaterThan(initialX)
+    })
+
+    it('죽은 파티클은 제거된다 (풀로 반환)', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [0.1, 0.1],
+        maxParticles: 10,
+      })
+
+      emitter.burst(5)
+      expect(emitter.particleCount).toBe(5)
+
+      emitter.update(0.2)
+
+      expect(emitter.particleCount).toBe(0)
+    })
+
+    it('particleDeath 이벤트가 발생한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [0.1, 0.1],
+      })
+      const handler = vi.fn()
+      emitter.event.on('particleDeath', handler)
+
+      emitter.burst(1)
+      emitter.update(0.2)
+
+      expect(handler).toHaveBeenCalled()
+    })
+
+    it('모든 파티클 소멸 시 empty 이벤트가 발생한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [0.1, 0.1],
+      })
+      const handler = vi.fn()
+      emitter.event.on('empty', handler)
+
+      emitter.burst(1)
+      emitter.update(0.2)
+
+      expect(handler).toHaveBeenCalled()
+    })
+
+    it('duration 후에 자동으로 stop된다', () => {
+      const emitter = new ParticleEmitter({
+        duration: 1,
+        rate: 10,
+      })
+
+      emitter.start()
+      emitter.update(1.5)
+
+      expect(emitter.running).toBe(false)
+    })
+
+    it('시간에 따라 size가 변화한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [1, 1],
+        size: { from: 10, to: 0 },
+      })
+
+      emitter.burst(1)
+      emitter.update(0.5)
+
+      expect(emitter._particles[0].size).toBeCloseTo(5, 0)
+    })
+
+    it('시간에 따라 alpha가 변화한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [1, 1],
+        alpha: { from: 1, to: 0 },
+      })
+
+      emitter.burst(1)
+      emitter.update(0.5)
+
+      expect(emitter._particles[0].alpha).toBeCloseTo(0.5, 1)
+    })
+  })
+```
+
+### Step 2: 테스트 실행하여 실패 확인
+
+Run: `pnpm test tests/emitter.test.js`
+Expected: FAIL - update 메서드 없음
+
+### Step 3: update 메서드 구현
+
+```javascript
+// you/particle/emitter.js에 메서드 추가
+
+  _interpolate(transition, progress) {
+    const t = transition.easing ? transition.easing(progress) : progress
+    return transition.from + (transition.to - transition.from) * t
   }
 
   update(deltaTime) {
@@ -887,47 +944,124 @@ export class ParticleEmitter {
     if (deadParticles.length > 0 && this._particles.length === 0) {
       this.event.emit('empty')
 
-      // complete 이벤트 (duration 끝 + empty)
       if (this._durationEnded) {
         this.event.emit('complete')
       }
     }
   }
+```
 
-  _spawnParticle() {
-    // 풀에서 가져오거나 새로 생성
-    let particle = this._pool.pop()
-    if (!particle) {
-      particle = new Particle()
-    }
+### Step 4: 테스트 실행하여 통과 확인
 
-    // 위치 (spread 적용)
-    const spawnX = this.position[0] + (Math.random() - 0.5) * 2 * this._spread
-    const spawnY = this.position[1] + (Math.random() - 0.5) * 2 * this._spread
+Run: `pnpm test tests/emitter.test.js`
+Expected: PASS
 
-    // 속도 계산
-    const speed = this._randomRange(this._speed)
-    const directionDeg = this._randomRange(this._direction)
-    const directionRad = directionDeg * Math.PI / 180
-    const vx = Math.cos(directionRad) * speed
-    const vy = Math.sin(directionRad) * speed
+### Step 5: 커밋
 
-    particle.reset({
-      position: [spawnX, spawnY],
-      velocity: [vx, vy],
-      lifetime: this._randomRange(this._lifetime),
-      gravity: this._gravity,
-      friction: this._friction,
-      size: this._size.from,
-      alpha: this._alpha.from,
-      color: colorToString(this._color.from),
-      rotation: this._randomRange(this._rotation) * Math.PI / 180,
-      rotationSpeed: this._randomRange(this._rotationSpeed) * Math.PI / 180,
+```bash
+git add you/particle/emitter.js tests/emitter.test.js
+git commit -m "feat(particle): ParticleEmitter update 메서드 추가
+
+- rate 기반 연속 생성
+- 파티클 업데이트 및 속성 보간
+- 죽은 파티클 풀 반환
+- empty/complete 이벤트"
+```
+
+---
+
+## Task 5: ParticleEmitter 클래스 - render
+
+**Files:**
+- Modify: `you/particle/emitter.js`
+- Modify: `tests/emitter.test.js`
+
+### Step 1: render 테스트 추가
+
+```javascript
+// tests/emitter.test.js에 추가
+
+  describe('render()', () => {
+    it('파티클을 렌더링한다', () => {
+      const emitter = new ParticleEmitter()
+      emitter.burst(5)
+
+      const mockContext = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        globalCompositeOperation: 'source-over',
+        globalAlpha: 1,
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        beginPath: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn(),
+        fillStyle: '',
+        fillRect: vi.fn(),
+      }
+
+      emitter.render(mockContext)
+
+      expect(mockContext.save).toHaveBeenCalled()
+      expect(mockContext.restore).toHaveBeenCalled()
     })
 
-    this._particles.push(particle)
-    this.event.emit('particleSpawn', particle)
-  }
+    it('shape에 따라 다른 렌더링을 한다', () => {
+      const circleEmitter = new ParticleEmitter({ shape: 'circle' })
+      circleEmitter.burst(1)
+
+      const mockContext = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        globalCompositeOperation: 'source-over',
+        globalAlpha: 1,
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        beginPath: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn(),
+        fillStyle: '',
+        fillRect: vi.fn(),
+      }
+
+      circleEmitter.render(mockContext)
+
+      expect(mockContext.arc).toHaveBeenCalled()
+    })
+
+    it('blendMode를 적용한다', () => {
+      const emitter = new ParticleEmitter({ blendMode: 'lighter' })
+      emitter.burst(1)
+
+      const mockContext = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        globalCompositeOperation: 'source-over',
+        globalAlpha: 1,
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        beginPath: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn(),
+        fillStyle: '',
+      }
+
+      emitter.render(mockContext)
+
+      expect(mockContext.globalCompositeOperation).toBe('lighter')
+    })
+  })
+```
+
+### Step 2: 테스트 실행하여 실패 확인
+
+Run: `pnpm test tests/emitter.test.js`
+Expected: FAIL - render 메서드 없음
+
+### Step 3: render 메서드 구현
+
+```javascript
+// you/particle/emitter.js에 메서드 추가
 
   render(context) {
     context.save()
@@ -968,10 +1102,9 @@ export class ParticleEmitter {
 
     context.restore()
   }
-}
 ```
 
-### Step 4: 테스트 통과 확인
+### Step 4: 테스트 실행하여 통과 확인
 
 Run: `pnpm test tests/emitter.test.js`
 Expected: PASS
@@ -980,22 +1113,20 @@ Expected: PASS
 
 ```bash
 git add you/particle/emitter.js tests/emitter.test.js
-git commit -m "feat(particle): ParticleEmitter 클래스 추가
+git commit -m "feat(particle): ParticleEmitter render 메서드 추가
 
-- rate 기반 연속 생성, burst 일괄 생성
-- 오브젝트 풀링으로 GC 최소화
-- 시간에 따른 size, alpha, color 변화 (이징 지원)
-- circle, rect, image 렌더링
-- start/stop/particleSpawn/particleDeath/empty/complete 이벤트"
+- circle, rect, image shape 지원
+- blendMode 적용
+- alpha, rotation 처리"
 ```
 
 ---
 
-## Task 4: ParticleSystem 클래스 (particle-system.js)
+## Task 6: ParticleSystem 클래스
 
 **Files:**
 - Create: `you/particle/particle-system.js`
-- Test: `tests/particle-system.test.js`
+- Create: `tests/particle-system.test.js`
 
 ### Step 1: 테스트 파일 생성
 
@@ -1007,7 +1138,7 @@ import { ParticleSystem } from '../you/particle/particle-system.js'
 import { ParticleEmitter } from '../you/particle/emitter.js'
 
 describe('ParticleSystem', () => {
-  describe('add() / remove()', () => {
+  describe('add() / remove() / get()', () => {
     it('이미터를 추가할 수 있다', () => {
       const system = new ParticleSystem()
       const emitter = new ParticleEmitter()
@@ -1031,7 +1162,7 @@ describe('ParticleSystem', () => {
   describe('play()', () => {
     it('특정 위치에서 이미터를 재생한다', () => {
       const system = new ParticleSystem()
-      const emitter = new ParticleEmitter({ rate: 0 })  // burst만 사용
+      const emitter = new ParticleEmitter({ rate: 0 })
 
       system.add('explosion', emitter)
       system.play('explosion', [100, 200])
@@ -1048,9 +1179,19 @@ describe('ParticleSystem', () => {
 
       expect(emitter.particleCount).toBe(50)
     })
+
+    it('burst 없이 호출하면 start()를 호출한다', () => {
+      const system = new ParticleSystem()
+      const emitter = new ParticleEmitter({ rate: 10 })
+
+      system.add('smoke', emitter)
+      system.play('smoke')
+
+      expect(emitter.running).toBe(true)
+    })
   })
 
-  describe('stop()', () => {
+  describe('stop() / stopAll()', () => {
     it('특정 이미터를 정지한다', () => {
       const system = new ParticleSystem()
       const emitter = new ParticleEmitter()
@@ -1061,9 +1202,7 @@ describe('ParticleSystem', () => {
 
       expect(emitter.running).toBe(false)
     })
-  })
 
-  describe('stopAll()', () => {
     it('모든 이미터를 정지한다', () => {
       const system = new ParticleSystem()
       const emitter1 = new ParticleEmitter()
@@ -1124,7 +1263,7 @@ describe('ParticleSystem', () => {
 })
 ```
 
-### Step 2: 테스트 실패 확인
+### Step 2: 테스트 실행하여 실패 확인
 
 Run: `pnpm test tests/particle-system.test.js`
 Expected: FAIL - 모듈을 찾을 수 없음
@@ -1223,7 +1362,7 @@ export class ParticleSystem {
 }
 ```
 
-### Step 4: 테스트 통과 확인
+### Step 4: 테스트 실행하여 통과 확인
 
 Run: `pnpm test tests/particle-system.test.js`
 Expected: PASS
@@ -1235,14 +1374,13 @@ git add you/particle/particle-system.js tests/particle-system.test.js
 git commit -m "feat(particle): ParticleSystem 클래스 추가
 
 - 여러 이미터를 이름으로 관리
-- play(), stop(), stopAll() 제어
-- 일괄 update/render
-- totalParticleCount 속성"
+- play() / stop() / stopAll()
+- 일괄 update/render"
 ```
 
 ---
 
-## Task 5: 최종 검증
+## Task 7: 최종 검증
 
 ### Step 1: 전체 테스트 실행
 
@@ -1252,13 +1390,12 @@ Expected: ALL PASS
 ### Step 2: 커버리지 확인
 
 Run: `pnpm test --coverage`
-Expected: 새 파일들 커버리지 80% 이상
+Expected: particle/*.js 커버리지 80% 이상
 
-### Step 3: 최종 정리
+### Step 3: 최종 확인
 
 ```bash
-git status
-git log --oneline -5
+git log --oneline -10
 ```
 
 ---
@@ -1267,58 +1404,11 @@ git log --oneline -5
 
 | 파일 | 설명 |
 |------|------|
-| `you/particle/particle.js` | 개별 파티클 |
 | `you/particle/color.js` | 색상 보간 유틸리티 |
+| `you/particle/particle.js` | 개별 파티클 |
 | `you/particle/emitter.js` | 파티클 이미터 |
 | `you/particle/particle-system.js` | 이미터 통합 관리 |
-| `tests/particle.test.js` | Particle 테스트 |
 | `tests/particle-color.test.js` | 색상 유틸리티 테스트 |
+| `tests/particle.test.js` | Particle 테스트 |
 | `tests/emitter.test.js` | ParticleEmitter 테스트 |
 | `tests/particle-system.test.js` | ParticleSystem 테스트 |
-
-## 사용 예시
-
-```javascript
-import { ParticleEmitter } from './you/particle/emitter.js'
-import { ParticleSystem } from './you/particle/particle-system.js'
-import { Easing } from './you/animation/easing.js'
-
-// 폭발 효과
-const explosion = new ParticleEmitter({
-  position: [400, 300],
-  rate: 0,  // burst만 사용
-  maxParticles: 50,
-
-  shape: 'circle',
-  lifetime: [0.3, 0.8],
-  speed: [100, 300],
-  direction: [0, 360],
-
-  size: { from: 12, to: 0, easing: Easing.easeOutQuad },
-  alpha: { from: 1, to: 0, easing: Easing.easeIn },
-  color: { from: '#ffff00', to: '#ff0000' },
-
-  gravity: [0, 200],
-})
-
-// 폭발!
-explosion.burst(50)
-
-// 게임 루프
-function update(deltaTime) {
-  explosion.update(deltaTime / 1000)  // 초 단위
-}
-
-function render(context) {
-  explosion.render(context)
-}
-
-// 여러 이펙트 관리
-const effects = new ParticleSystem()
-effects.add('explosion', explosion)
-effects.add('smoke', new ParticleEmitter({ ... }))
-
-effects.play('explosion', [100, 200], { burst: 50 })
-effects.update(deltaTime)
-effects.render(context)
-```
