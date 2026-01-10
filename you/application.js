@@ -55,7 +55,7 @@ export class SceneApplication extends Application {
 	}
 
 	pop(...args) {
-		this.queue.add({ type: 'pop', args });
+		this.queue.push({ type: 'pop', args });
 	}
 
 	transit(scene, { exitArgs=[], enterArgs=[] }={}) {
