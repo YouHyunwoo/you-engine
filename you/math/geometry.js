@@ -53,7 +53,7 @@ Array.prototype.intersects = function (other) {
         }
     }
     else if (this.length === 6) {
-        if (other.length === 4) {
+        if (other.length === 6) {
             return (
                 this[0] < other[0] + other[3] && other[0] < this[0] + this[3] &&
                 this[1] < other[1] + other[4] && other[1] < this[1] + this[4] &&

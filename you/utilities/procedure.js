@@ -1,5 +1,5 @@
-import { Base as BaseObject } from "../../../libraries/you/framework/object.js";
-import { EventEmitter } from "../../../libraries/you/utilities/event.js";
+import { Object as BaseObject } from "../framework/object.js";
+import { EventEmitter } from "./event.js";
 
 
 export class Task extends BaseObject {
