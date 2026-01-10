@@ -27,6 +27,6 @@ export class Output {
     }
 
     unlockPointer() {
-        screen.exitPointerLock();
+        document.exitPointerLock();
     }
 }
