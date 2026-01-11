@@ -88,5 +88,27 @@ describe('Output', () => {
 
       expect(mockEngine.input.unlockPointer).toHaveBeenCalled()
     })
+
+    it('여러 번 lockPointer 호출해도 리스너는 한 번만 등록된다', () => {
+      const addEventListenerSpy = vi.spyOn(document, 'addEventListener')
+
+      const mockCanvas = {
+        requestPointerLock: vi.fn()
+      }
+      const screen = { canvas: mockCanvas }
+      output.addScreen('main', screen)
+
+      output.lockPointer('main')
+      output.lockPointer('main')
+      output.lockPointer('main')
+
+      const pointerLockCalls = addEventListenerSpy.mock.calls.filter(
+        call => call[0] === 'pointerlockchange'
+      )
+
+      expect(pointerLockCalls.length).toBe(1)
+
+      addEventListenerSpy.mockRestore()
+    })
   })
 })
