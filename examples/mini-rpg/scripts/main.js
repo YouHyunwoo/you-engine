@@ -7,7 +7,7 @@ You.run({
   screens: {
     main: {
       canvas: document.querySelector('#game'),
-      size: [800, 600]
+      size: [1300, 800]
     }
   },
   applications: [new MiniRPG({ mainScreen: 'main' })]
