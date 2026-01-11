@@ -13,11 +13,19 @@ async function loadJSON(url) {
     }
 
     const response = await fetch(url);
-    if (!response.ok) { return null }
+    if (!response.ok) {
+        throw new Error(`Failed to load ${url}: ${response.status}`);
+    }
 
     let data = await response.json();
 
     for (const accessor of accessors) {
+        if (data === null || data === undefined) {
+            throw new Error(`Accessor "${accessor}" not found: path terminated early`);
+        }
+        if (!(accessor in data)) {
+            throw new Error(`Accessor "${accessor}" not found in data`);
+        }
         data = data[accessor];
     }
 
