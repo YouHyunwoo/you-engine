@@ -229,4 +229,75 @@ describe('ParticleEmitter', () => {
       expect(emitter._particles[0].alpha).toBeCloseTo(0.5, 1)
     })
   })
+
+  describe('render()', () => {
+    it('파티클을 렌더링한다', () => {
+      const emitter = new ParticleEmitter()
+      emitter.burst(5)
+
+      const mockContext = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        globalCompositeOperation: 'source-over',
+        globalAlpha: 1,
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        beginPath: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn(),
+        fillStyle: '',
+        fillRect: vi.fn(),
+      }
+
+      emitter.render(mockContext)
+
+      expect(mockContext.save).toHaveBeenCalled()
+      expect(mockContext.restore).toHaveBeenCalled()
+    })
+
+    it('shape에 따라 다른 렌더링을 한다', () => {
+      const circleEmitter = new ParticleEmitter({ shape: 'circle' })
+      circleEmitter.burst(1)
+
+      const mockContext = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        globalCompositeOperation: 'source-over',
+        globalAlpha: 1,
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        beginPath: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn(),
+        fillStyle: '',
+        fillRect: vi.fn(),
+      }
+
+      circleEmitter.render(mockContext)
+
+      expect(mockContext.arc).toHaveBeenCalled()
+    })
+
+    it('blendMode를 적용한다', () => {
+      const emitter = new ParticleEmitter({ blendMode: 'lighter' })
+      emitter.burst(1)
+
+      const mockContext = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        globalCompositeOperation: 'source-over',
+        globalAlpha: 1,
+        translate: vi.fn(),
+        rotate: vi.fn(),
+        beginPath: vi.fn(),
+        arc: vi.fn(),
+        fill: vi.fn(),
+        fillStyle: '',
+      }
+
+      emitter.render(mockContext)
+
+      expect(mockContext.globalCompositeOperation).toBe('lighter')
+    })
+  })
 })

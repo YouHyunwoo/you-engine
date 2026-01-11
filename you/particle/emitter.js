@@ -238,4 +238,44 @@ export class ParticleEmitter {
       }
     }
   }
+
+  render(context) {
+    context.save()
+    context.globalCompositeOperation = this.blendMode
+
+    for (const particle of this._particles) {
+      this._renderParticle(context, particle)
+    }
+
+    context.restore()
+  }
+
+  _renderParticle(context, particle) {
+    const { position, size, alpha, color, rotation } = particle
+
+    context.save()
+    context.globalAlpha = alpha
+    context.translate(position[0], position[1])
+    context.rotate(rotation)
+
+    if (this.shape === 'circle') {
+      context.beginPath()
+      context.arc(0, 0, size / 2, 0, Math.PI * 2)
+      context.fillStyle = color
+      context.fill()
+    } else if (this.shape === 'rect') {
+      context.fillStyle = color
+      context.fillRect(-size / 2, -size / 2, size, size)
+    } else if (this.shape === 'image' && this.image) {
+      const scale = this._interpolate(this._scale, particle.progress)
+      const imgSize = size * scale
+      if (this.image.render) {
+        this.image.render(context, -imgSize / 2, -imgSize / 2, imgSize, imgSize)
+      } else if (this.image.loaded !== false) {
+        context.drawImage(this.image, -imgSize / 2, -imgSize / 2, imgSize, imgSize)
+      }
+    }
+
+    context.restore()
+  }
 }
