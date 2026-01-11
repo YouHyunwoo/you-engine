@@ -123,4 +123,110 @@ describe('ParticleEmitter', () => {
       expect(emitter.rate).toBe(20)
     })
   })
+
+  describe('update()', () => {
+    it('rate에 따라 파티클이 생성된다', () => {
+      const emitter = new ParticleEmitter({
+        rate: 10,
+        maxParticles: 100,
+        lifetime: [10, 10],  // 충분히 긴 수명
+      })
+
+      emitter.start()
+      emitter.update(1)  // 1초 = 10개 생성
+
+      expect(emitter.particleCount).toBe(10)
+    })
+
+    it('파티클이 업데이트된다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [1, 1],
+        speed: [100, 100],
+        direction: [0, 0],
+      })
+
+      emitter.burst(1)
+      const initialX = emitter._particles[0].position[0]
+
+      emitter.update(0.5)
+
+      expect(emitter._particles[0].position[0]).toBeGreaterThan(initialX)
+    })
+
+    it('죽은 파티클은 제거된다 (풀로 반환)', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [0.1, 0.1],
+        maxParticles: 10,
+      })
+
+      emitter.burst(5)
+      expect(emitter.particleCount).toBe(5)
+
+      emitter.update(0.2)
+
+      expect(emitter.particleCount).toBe(0)
+    })
+
+    it('particleDeath 이벤트가 발생한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [0.1, 0.1],
+      })
+      const handler = vi.fn()
+      emitter.event.on('particleDeath', handler)
+
+      emitter.burst(1)
+      emitter.update(0.2)
+
+      expect(handler).toHaveBeenCalled()
+    })
+
+    it('모든 파티클 소멸 시 empty 이벤트가 발생한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [0.1, 0.1],
+      })
+      const handler = vi.fn()
+      emitter.event.on('empty', handler)
+
+      emitter.burst(1)
+      emitter.update(0.2)
+
+      expect(handler).toHaveBeenCalled()
+    })
+
+    it('duration 후에 자동으로 stop된다', () => {
+      const emitter = new ParticleEmitter({
+        duration: 1,
+        rate: 10,
+      })
+
+      emitter.start()
+      emitter.update(1.5)
+
+      expect(emitter.running).toBe(false)
+    })
+
+    it('시간에 따라 size가 변화한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [1, 1],
+        size: { from: 10, to: 0 },
+      })
+
+      emitter.burst(1)
+      emitter.update(0.5)
+
+      expect(emitter._particles[0].size).toBeCloseTo(5, 0)
+    })
+
+    it('시간에 따라 alpha가 변화한다', () => {
+      const emitter = new ParticleEmitter({
+        lifetime: [1, 1],
+        alpha: { from: 1, to: 0 },
+      })
+
+      emitter.burst(1)
+      emitter.update(0.5)
+
+      expect(emitter._particles[0].alpha).toBeCloseTo(0.5, 1)
+    })
+  })
 })

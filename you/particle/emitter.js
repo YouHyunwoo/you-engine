@@ -174,4 +174,68 @@ export class ParticleEmitter {
     this._particles.push(particle)
     this.event.emit('particleSpawn', particle)
   }
+
+  _interpolate(transition, progress) {
+    const t = transition.easing ? transition.easing(progress) : progress
+    return transition.from + (transition.to - transition.from) * t
+  }
+
+  update(deltaTime) {
+    // duration 체크
+    if (this._running && this.duration !== Infinity) {
+      this._durationElapsed += deltaTime
+      if (this._durationElapsed >= this.duration) {
+        this.stop()
+        this._durationEnded = true
+      }
+    }
+
+    // 연속 생성
+    if (this._running && this.rate > 0) {
+      this._spawnAccumulator += deltaTime * this.rate
+      while (this._spawnAccumulator >= 1 && this._particles.length < this.maxParticles) {
+        this._spawnParticle()
+        this._spawnAccumulator -= 1
+      }
+    }
+
+    // 파티클 업데이트
+    const deadParticles = []
+
+    for (const particle of this._particles) {
+      particle.update(deltaTime)
+
+      // 시간에 따른 속성 변화
+      const progress = particle.progress
+      particle.size = this._interpolate(this._size, progress)
+      particle.alpha = this._interpolate(this._alpha, progress)
+
+      const colorT = this._color.easing ? this._color.easing(progress) : progress
+      const rgba = lerpColor(this._color.from, this._color.to, colorT)
+      particle.color = colorToString(rgba)
+
+      if (!particle.alive) {
+        deadParticles.push(particle)
+      }
+    }
+
+    // 죽은 파티클 처리
+    for (const particle of deadParticles) {
+      const index = this._particles.indexOf(particle)
+      if (index >= 0) {
+        this._particles.splice(index, 1)
+        this._pool.push(particle)
+        this.event.emit('particleDeath', particle)
+      }
+    }
+
+    // empty 이벤트
+    if (deadParticles.length > 0 && this._particles.length === 0) {
+      this.event.emit('empty')
+
+      if (this._durationEnded) {
+        this.event.emit('complete')
+      }
+    }
+  }
 }
