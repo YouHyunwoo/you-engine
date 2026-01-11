@@ -12,6 +12,10 @@ export class Output {
 
     lockPointer(id) {
         const screen = this.screens[id];
+        if (!screen || !screen.canvas) {
+            console.warn(`Screen "${id}" not found or invalid`);
+            return;
+        }
         const canvas = screen.canvas;
 
         // 기존 리스너가 없을 때만 등록
@@ -33,5 +37,12 @@ export class Output {
 
     unlockPointer() {
         document.exitPointerLock();
+    }
+
+    disconnect() {
+        if (this._pointerLockListener) {
+            document.removeEventListener('pointerlockchange', this._pointerLockListener);
+            this._pointerLockListener = null;
+        }
     }
 }
