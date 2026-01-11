@@ -3,6 +3,7 @@ import { PlayerController } from '../components/player-controller.js'
 import { ShapeRenderer } from '../components/shape-renderer.js'
 import { Stats } from '../components/stats.js'
 import { AttackController } from '../components/attack-controller.js'
+import { HpBar } from '../components/hp-bar.js'
 
 export function createPlayer(x, y) {
   const player = new Object({
@@ -17,7 +18,8 @@ export function createPlayer(x, y) {
         strokeWidth: 3
       }),
       new Stats({ maxHp: 100, attack: 15, defense: 5 }),
-      new AttackController({ range: 50, cooldown: 0.4 })
+      new AttackController({ range: 50, cooldown: 0.4 }),
+      new HpBar({ width: 40, height: 6, offsetY: -25 })
     ]
   })
 

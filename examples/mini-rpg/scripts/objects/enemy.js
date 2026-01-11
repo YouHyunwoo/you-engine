@@ -2,6 +2,7 @@ import { Object } from '../../../../you/object.js'
 import { EnemyAI } from '../components/enemy-ai.js'
 import { ShapeRenderer } from '../components/shape-renderer.js'
 import { Stats } from '../components/stats.js'
+import { HpBar } from '../components/hp-bar.js'
 
 export function createMushroom(x, y) {
   const enemy = new Object({
@@ -16,7 +17,8 @@ export function createMushroom(x, y) {
         strokeColor: '#992a2a',
         strokeWidth: 2
       }),
-      new Stats({ maxHp: 30, attack: 8, defense: 2 })
+      new Stats({ maxHp: 30, attack: 8, defense: 2 }),
+      new HpBar({ width: 30, height: 4, offsetY: -20 })
     ]
   })
 
@@ -38,7 +40,8 @@ export function createAnt(x, y) {
         strokeColor: '#1a1a1a',
         strokeWidth: 2
       }),
-      new Stats({ maxHp: 15, attack: 5, defense: 1 })
+      new Stats({ maxHp: 15, attack: 5, defense: 1 }),
+      new HpBar({ width: 30, height: 4, offsetY: -20 })
     ]
   })
 
