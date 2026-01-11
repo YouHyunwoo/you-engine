@@ -1,5 +1,6 @@
 import { Scene } from '../../../../you/scene.js'
 import { createPlayer } from '../objects/player.js'
+import { PlayerController } from '../components/player-controller.js'
 
 export class GameScene extends Scene {
   willCreate() {
@@ -9,6 +10,10 @@ export class GameScene extends Scene {
   didCreate() {
     const player = createPlayer(400, 300)
     this.add(player)
+
+    // 플레이어 경계 설정
+    const controller = player.findComponent(PlayerController)
+    controller.setBounds(0, 0, this.mapSize[0], this.mapSize[1])
 
     // 카메라가 플레이어를 따라가도록
     this.player = player
