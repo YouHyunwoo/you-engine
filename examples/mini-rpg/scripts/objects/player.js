@@ -1,6 +1,7 @@
 import { Object } from '../../../../you/object.js'
 import { PlayerController } from '../components/player-controller.js'
 import { ShapeRenderer } from '../components/shape-renderer.js'
+import { Stats } from '../components/stats.js'
 
 export function createPlayer(x, y) {
   const player = new Object({
@@ -13,7 +14,8 @@ export function createPlayer(x, y) {
         color: '#4a90d9',
         strokeColor: '#2a5a99',
         strokeWidth: 3
-      })
+      }),
+      new Stats({ maxHp: 100, attack: 15, defense: 5 })
     ]
   })
 

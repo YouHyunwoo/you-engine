@@ -1,6 +1,7 @@
 import { Object } from '../../../../you/object.js'
 import { EnemyAI } from '../components/enemy-ai.js'
 import { ShapeRenderer } from '../components/shape-renderer.js'
+import { Stats } from '../components/stats.js'
 
 export function createMushroom(x, y) {
   const enemy = new Object({
@@ -14,7 +15,8 @@ export function createMushroom(x, y) {
         color: '#d94a4a',
         strokeColor: '#992a2a',
         strokeWidth: 2
-      })
+      }),
+      new Stats({ maxHp: 30, attack: 8, defense: 2 })
     ]
   })
 
@@ -35,7 +37,8 @@ export function createAnt(x, y) {
         color: '#2a2a2a',
         strokeColor: '#1a1a1a',
         strokeWidth: 2
-      })
+      }),
+      new Stats({ maxHp: 15, attack: 5, defense: 1 })
     ]
   })
 
