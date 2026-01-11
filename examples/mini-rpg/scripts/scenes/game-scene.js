@@ -143,6 +143,17 @@ export class GameScene extends Scene {
       this.respawnTimer = 0
       this.checkRespawn()
     }
+
+    // 렌더링 순서 정렬 (Y 좌표 기준)
+    // tilemap은 항상 첫 번째, HUD는 View 클래스라 별도 처리됨
+    this.objects.sort((a, b) => {
+      // tilemap은 항상 맨 앞
+      if (a.name === 'tilemap') return -1
+      if (b.name === 'tilemap') return 1
+
+      // 나머지는 Y 좌표 기준 정렬 (낮은 Y가 먼저)
+      return a.position[1] - b.position[1]
+    })
   }
 
   playerAttack() {
