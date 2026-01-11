@@ -223,4 +223,32 @@ describe('SpriteAnimation', () => {
       expect(frameChangeListener).toHaveBeenCalledWith(1)
     })
   })
+
+  describe('render()', () => {
+    it('현재 프레임의 영역을 sprite에 설정하고 render를 호출한다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+      })
+      const mockContext = {}
+
+      animation.render(mockContext, 100, 200)
+
+      expect(sprite.croppingArea).toEqual([0, 0, 32, 32])
+      expect(sprite.render).toHaveBeenCalledWith(mockContext, 100, 200)
+    })
+
+    it('다른 프레임에서는 해당 프레임의 영역을 설정한다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+      })
+      const mockContext = {}
+      animation._currentFrame = 1
+
+      animation.render(mockContext, 100, 200)
+
+      expect(sprite.croppingArea).toEqual([32, 0, 32, 32])
+    })
+  })
 })

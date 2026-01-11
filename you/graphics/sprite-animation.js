@@ -121,4 +121,10 @@ export class SpriteAnimation {
       this.event.emit('frameChange', this._currentFrame)
     }
   }
+
+  render(context, x, y) {
+    const frame = this.frames[this._currentFrame]
+    this.sprite.croppingArea = frame
+    this.sprite.render(context, x, y)
+  }
 }
