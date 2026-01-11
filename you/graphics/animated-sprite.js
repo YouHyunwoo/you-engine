@@ -80,10 +80,43 @@ export class AnimatedSprite {
     return this._current
   }
 
+  get playing() {
+    return this._currentAnimation?.playing ?? false
+  }
+
+  get currentFrame() {
+    return this._currentAnimation?.currentFrame ?? 0
+  }
+
   _setCurrent(name) {
-    if (this._animations[name]) {
-      this._current = name
-      this._currentAnimation = this._animations[name]
+    if (!this._animations[name]) {
+      throw new Error(`Animation "${name}" not found`)
     }
+    this._current = name
+    this._currentAnimation = this._animations[name]
+  }
+
+  play(name) {
+    if (name === this._current) {
+      this._currentAnimation?.play()
+      return
+    }
+
+    this._setCurrent(name)
+    this._currentAnimation?.stop()
+    this._currentAnimation?.play()
+    this.event.emit('change', name)
+  }
+
+  pause() {
+    this._currentAnimation?.pause()
+  }
+
+  stop() {
+    this._currentAnimation?.stop()
+  }
+
+  update(deltaTime) {
+    this._currentAnimation?.update(deltaTime)
   }
 }
