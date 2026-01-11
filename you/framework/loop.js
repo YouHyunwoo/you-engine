@@ -18,6 +18,9 @@ export class Loop {
 	}
 
 	stop() {
+		if (this.handle !== null) {
+			window.cancelAnimationFrame(this.handle);
+		}
 		this.handle = null;
 	}
 
