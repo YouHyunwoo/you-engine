@@ -14,11 +14,28 @@ export class ShapeRenderer extends Component {
     this.color = color
     this.strokeColor = strokeColor
     this.strokeWidth = strokeWidth
+    this.flashColor = null
+    this.flashDuration = 0
+  }
+
+  flash(color, duration = 0.1) {
+    this.flashColor = color
+    this.flashDuration = duration
+  }
+
+  didUpdate(deltaTime) {
+    if (this.flashDuration > 0) {
+      this.flashDuration -= deltaTime
+      if (this.flashDuration <= 0) {
+        this.flashColor = null
+      }
+    }
   }
 
   didRender(context) {
     const pos = this.object.position
     const halfSize = this.size / 2
+    const color = this.flashColor || this.color
 
     context.save()
     context.translate(pos[0], pos[1])
@@ -26,7 +43,7 @@ export class ShapeRenderer extends Component {
     if (this.shape === 'circle') {
       context.beginPath()
       context.arc(0, 0, halfSize, 0, Math.PI * 2)
-      context.fillStyle = this.color
+      context.fillStyle = color
       context.fill()
       if (this.strokeColor) {
         context.strokeStyle = this.strokeColor
@@ -34,7 +51,7 @@ export class ShapeRenderer extends Component {
         context.stroke()
       }
     } else if (this.shape === 'rect') {
-      context.fillStyle = this.color
+      context.fillStyle = color
       context.fillRect(-halfSize, -halfSize, this.size, this.size)
       if (this.strokeColor) {
         context.strokeStyle = this.strokeColor

@@ -5,6 +5,7 @@ import { PlayerController } from '../components/player-controller.js'
 import { EnemyAI } from '../components/enemy-ai.js'
 import { AttackController } from '../components/attack-controller.js'
 import { Stats } from '../components/stats.js'
+import { ShapeRenderer } from '../components/shape-renderer.js'
 import { HUD } from '../ui/hud.js'
 import { GameOverScene } from './gameover-scene.js'
 
@@ -94,6 +95,12 @@ export class GameScene extends Scene {
 
     for (const hit of hits) {
       console.log(`Hit ${hit.target.name} for ${hit.damage} damage`)
+
+      // 피격 이펙트
+      const renderer = hit.target.findComponent(ShapeRenderer)
+      if (renderer) {
+        renderer.flash('#ffffff', 0.1)
+      }
 
       const targetStats = hit.target.findComponent(Stats)
       if (!targetStats.alive) {
