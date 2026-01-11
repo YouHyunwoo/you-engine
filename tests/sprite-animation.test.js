@@ -90,4 +90,44 @@ describe('SpriteAnimation', () => {
         .toThrow()
     })
   })
+
+  describe('재생 제어', () => {
+    it('play()로 재생을 시작한다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32]],
+      })
+
+      animation.play()
+
+      expect(animation.playing).toBe(true)
+    })
+
+    it('pause()로 일시 정지한다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32]],
+      })
+
+      animation.play()
+      animation.pause()
+
+      expect(animation.playing).toBe(false)
+    })
+
+    it('stop()으로 정지하고 처음으로 돌아간다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+        fps: 10,
+      })
+
+      animation.play()
+      animation._currentFrame = 1
+      animation.stop()
+
+      expect(animation.playing).toBe(false)
+      expect(animation.currentFrame).toBe(0)
+    })
+  })
 })

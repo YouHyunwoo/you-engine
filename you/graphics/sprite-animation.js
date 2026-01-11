@@ -77,4 +77,18 @@ export class SpriteAnimation {
   get playing() {
     return this._playing
   }
+
+  play() {
+    this._playing = true
+  }
+
+  pause() {
+    this._playing = false
+  }
+
+  stop() {
+    this._playing = false
+    this._currentFrame = 0
+    this._elapsed = 0
+  }
 }
