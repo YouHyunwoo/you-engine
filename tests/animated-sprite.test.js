@@ -162,4 +162,96 @@ describe('AnimatedSprite', () => {
       expect(sprite.currentFrame).toBe(0)
     })
   })
+
+  describe('update() / render()', () => {
+    it('update()로 프레임이 진행된다', () => {
+      const sprite = new AnimatedSprite({
+        sheet,
+        animations: {
+          idle: { grid: { cols: 4, rows: 2, start: 0, count: 4 }, fps: 10 },
+        },
+        default: 'idle',
+      })
+
+      sprite.play('idle')
+      expect(sprite.currentFrame).toBe(0)
+
+      sprite.update(100)
+
+      expect(sprite.currentFrame).toBe(1)
+    })
+
+    it('render()로 현재 프레임을 렌더링한다', () => {
+      const sprite = new AnimatedSprite({
+        sheet,
+        animations: {
+          idle: { grid: { cols: 4, rows: 2, start: 0, count: 4 }, fps: 8 },
+        },
+        default: 'idle',
+      })
+      const mockContext = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        translate: vi.fn(),
+        scale: vi.fn(),
+      }
+
+      sprite.render(mockContext, 100, 200)
+
+      expect(sheet.render).toHaveBeenCalled()
+    })
+  })
+
+  describe('이벤트', () => {
+    it('애니메이션 변경시 change 이벤트가 발생한다', () => {
+      const sprite = new AnimatedSprite({
+        sheet,
+        animations: {
+          idle: { grid: { cols: 4, rows: 2, start: 0, count: 4 }, fps: 8 },
+          walk: { grid: { cols: 4, rows: 2, start: 4, count: 4 }, fps: 12 },
+        },
+        default: 'idle',
+      })
+      const changeHandler = vi.fn()
+      sprite.event.on('change', changeHandler)
+
+      sprite.play('walk')
+
+      expect(changeHandler).toHaveBeenCalledWith('walk')
+    })
+
+    it('프레임 변경시 frameChange 이벤트가 발생한다', () => {
+      const sprite = new AnimatedSprite({
+        sheet,
+        animations: {
+          idle: { grid: { cols: 4, rows: 2, start: 0, count: 4 }, fps: 10 },
+        },
+        default: 'idle',
+      })
+      const frameHandler = vi.fn()
+      sprite.event.on('frameChange', frameHandler)
+
+      sprite.play('idle')
+      sprite.update(100)
+
+      expect(frameHandler).toHaveBeenCalledWith('idle', 1)
+    })
+
+    it('loop=false 완료시 complete 이벤트가 발생한다', () => {
+      const sprite = new AnimatedSprite({
+        sheet,
+        animations: {
+          jump: { grid: { cols: 4, rows: 2, start: 0, count: 2 }, fps: 10, loop: false },
+        },
+      })
+      const completeHandler = vi.fn()
+      sprite.event.on('complete', completeHandler)
+
+      sprite.play('jump')
+      sprite.update(100)  // frame 1
+      sprite.update(100)  // complete
+
+      expect(completeHandler).toHaveBeenCalledWith('jump')
+    })
+  })
 })

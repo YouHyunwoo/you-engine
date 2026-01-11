@@ -119,4 +119,8 @@ export class AnimatedSprite {
   update(deltaTime) {
     this._currentAnimation?.update(deltaTime)
   }
+
+  render(context, x = 0, y = 0) {
+    this._currentAnimation?.render(context, x, y)
+  }
 }
