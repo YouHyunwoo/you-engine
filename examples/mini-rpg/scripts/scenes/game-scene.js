@@ -191,20 +191,47 @@ export class GameScene extends Scene {
     }
   }
 
+  isValidSpawnPosition(x, y, radius) {
+    // 타일맵 충돌 체크
+    if (!this.tilemap.isPassableCircle(x, y, radius)) {
+      return false
+    }
+
+    // 구조물 충돌 체크
+    const structures = this.objects.filter(obj => obj.tags.has('structure'))
+    for (const structure of structures) {
+      const collider = structure.findComponent(Collider)
+      if (collider && collider.collidesWithCircle(x, y, radius)) {
+        return false
+      }
+    }
+
+    return true
+  }
+
   spawnRandomEnemy() {
-    // 플레이어로부터 일정 거리 떨어진 곳에 스폰
     const playerPos = this.player.position
+    const enemyRadius = 12
     let x, y, attempts = 0
 
     do {
       x = Math.random() * this.mapSize[0]
       y = Math.random() * this.mapSize[1]
+
+      // 플레이어와의 거리 체크
       const dx = x - playerPos[0]
       const dy = y - playerPos[1]
       const dist = Math.sqrt(dx * dx + dy * dy)
-      if (dist > 200) break
+
+      // 플레이어와 충분히 멀고 유효한 스폰 위치인지 체크
+      if (dist > 200 && this.isValidSpawnPosition(x, y, enemyRadius)) {
+        break
+      }
       attempts++
-    } while (attempts < 10)
+    } while (attempts < 20)
+
+    // 유효한 위치를 찾지 못하면 스폰하지 않음
+    if (attempts >= 20) return
 
     const enemy = Math.random() > 0.4 ? createMushroom(x, y) : createAnt(x, y)
     const ai = enemy.findComponent(EnemyAI)
