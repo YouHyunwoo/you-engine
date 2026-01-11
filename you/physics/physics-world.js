@@ -206,4 +206,118 @@ export class PhysicsWorld {
     const idB = this._colliders.indexOf(b)
     return idA < idB ? `${idA}-${idB}` : `${idB}-${idA}`
   }
+
+  /**
+   * 레이캐스트 - 광선과 콜라이더 충돌 검사
+   * @param {number[]} origin - 광선 시작점 [x, y]
+   * @param {number[]} direction - 광선 방향 (정규화된 벡터) [dx, dy]
+   * @param {number} maxDistance - 최대 거리
+   * @returns {{hit: boolean, collider?: Collider, point?: number[], normal?: number[], distance?: number}}
+   */
+  raycast(origin, direction, maxDistance) {
+    let closestHit = { hit: false }
+    let closestDistance = maxDistance
+
+    for (const collider of this._colliders) {
+      const hit = this._raycastCollider(origin, direction, collider, closestDistance)
+      if (hit && hit.distance < closestDistance) {
+        closestHit = hit
+        closestDistance = hit.distance
+      }
+    }
+
+    return closestHit
+  }
+
+  /**
+   * 개별 콜라이더에 대한 레이캐스트
+   */
+  _raycastCollider(origin, direction, collider, maxDistance) {
+    if (collider instanceof BoxCollider) {
+      return this._raycastBox(origin, direction, collider.getBounds(), maxDistance, collider)
+    } else if (collider instanceof CircleCollider) {
+      return this._raycastCircle(origin, direction, collider.getCircle(), maxDistance, collider)
+    }
+    return null
+  }
+
+  /**
+   * 박스에 대한 레이캐스트 (슬랩 알고리즘)
+   */
+  _raycastBox(origin, direction, box, maxDistance, collider) {
+    const invDirX = direction[0] !== 0 ? 1 / direction[0] : Infinity
+    const invDirY = direction[1] !== 0 ? 1 / direction[1] : Infinity
+
+    const t1 = (box.x - origin[0]) * invDirX
+    const t2 = (box.x + box.width - origin[0]) * invDirX
+    const t3 = (box.y - origin[1]) * invDirY
+    const t4 = (box.y + box.height - origin[1]) * invDirY
+
+    const tmin = Math.max(Math.min(t1, t2), Math.min(t3, t4))
+    const tmax = Math.min(Math.max(t1, t2), Math.max(t3, t4))
+
+    if (tmax < 0 || tmin > tmax || tmin > maxDistance) {
+      return null
+    }
+
+    const t = tmin >= 0 ? tmin : tmax
+    if (t > maxDistance) return null
+
+    const point = [
+      origin[0] + direction[0] * t,
+      origin[1] + direction[1] * t
+    ]
+
+    // 법선 계산
+    let normal
+    const epsilon = 0.001
+    if (Math.abs(point[0] - box.x) < epsilon) normal = [-1, 0]
+    else if (Math.abs(point[0] - (box.x + box.width)) < epsilon) normal = [1, 0]
+    else if (Math.abs(point[1] - box.y) < epsilon) normal = [0, -1]
+    else normal = [0, 1]
+
+    return {
+      hit: true,
+      collider,
+      point,
+      normal,
+      distance: t
+    }
+  }
+
+  /**
+   * 원에 대한 레이캐스트
+   */
+  _raycastCircle(origin, direction, circle, maxDistance, collider) {
+    const dx = origin[0] - circle.x
+    const dy = origin[1] - circle.y
+
+    const a = direction[0] * direction[0] + direction[1] * direction[1]
+    const b = 2 * (dx * direction[0] + dy * direction[1])
+    const c = dx * dx + dy * dy - circle.radius * circle.radius
+
+    const discriminant = b * b - 4 * a * c
+    if (discriminant < 0) return null
+
+    const t = (-b - Math.sqrt(discriminant)) / (2 * a)
+    if (t < 0 || t > maxDistance) return null
+
+    const point = [
+      origin[0] + direction[0] * t,
+      origin[1] + direction[1] * t
+    ]
+
+    const normal = [
+      (point[0] - circle.x) / circle.radius,
+      (point[1] - circle.y) / circle.radius
+    ]
+
+    return {
+      hit: true,
+      collider,
+      point,
+      normal,
+      distance: t
+    }
+  }
 }

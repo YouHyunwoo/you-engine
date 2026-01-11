@@ -88,4 +88,101 @@ describe('PhysicsWorld', () => {
       expect(obj.position).toEqual([100, 100])
     })
   })
+
+  describe('충돌 이벤트', () => {
+    it('collisionEnter 이벤트 발생', () => {
+      const world = new PhysicsWorld({ gravity: [0, 0] })
+
+      const colliderA = new BoxCollider({ size: [10, 10], type: 'dynamic' })
+      const colliderB = new BoxCollider({ size: [10, 10], type: 'static' })
+
+      createMockObject([0, 0], [colliderA])
+      createMockObject([5, 0], [colliderB])
+
+      const handler = vi.fn()
+      colliderA.event.on('collisionEnter', handler)
+
+      world.add(colliderA)
+      world.add(colliderB)
+      world.update(0.016)
+
+      expect(handler).toHaveBeenCalled()
+    })
+
+    it('triggerEnter 이벤트 발생 (trigger 타입)', () => {
+      const world = new PhysicsWorld({ gravity: [0, 0] })
+
+      const colliderA = new BoxCollider({ size: [10, 10], type: 'dynamic' })
+      const colliderB = new BoxCollider({ size: [10, 10], type: 'trigger' })
+
+      createMockObject([0, 0], [colliderA])
+      createMockObject([5, 0], [colliderB])
+
+      const handler = vi.fn()
+      colliderB.event.on('triggerEnter', handler)
+
+      world.add(colliderA)
+      world.add(colliderB)
+      world.update(0.016)
+
+      expect(handler).toHaveBeenCalled()
+    })
+  })
+
+  describe('raycast', () => {
+    it('광선과 박스 충돌 감지', () => {
+      const world = new PhysicsWorld()
+
+      const collider = new BoxCollider({ size: [10, 10], type: 'static' })
+      createMockObject([50, 0], [collider])
+
+      world.add(collider)
+
+      const result = world.raycast([0, 5], [1, 0], 100)
+
+      expect(result.hit).toBe(true)
+      expect(result.collider).toBe(collider)
+      expect(result.distance).toBeCloseTo(50, 1)
+    })
+
+    it('광선이 아무것도 맞지 않으면 hit: false', () => {
+      const world = new PhysicsWorld()
+
+      const collider = new BoxCollider({ size: [10, 10], type: 'static' })
+      createMockObject([50, 50], [collider])
+
+      world.add(collider)
+
+      const result = world.raycast([0, 0], [1, 0], 100)
+
+      expect(result.hit).toBe(false)
+    })
+
+    it('maxDistance 제한', () => {
+      const world = new PhysicsWorld()
+
+      const collider = new BoxCollider({ size: [10, 10], type: 'static' })
+      createMockObject([50, 0], [collider])
+
+      world.add(collider)
+
+      const result = world.raycast([0, 5], [1, 0], 30)
+
+      expect(result.hit).toBe(false)
+    })
+
+    it('원형 콜라이더와 충돌 감지', () => {
+      const world = new PhysicsWorld()
+
+      const collider = new CircleCollider({ radius: 10, type: 'static' })
+      createMockObject([50, 5], [collider])
+
+      world.add(collider)
+
+      const result = world.raycast([0, 5], [1, 0], 100)
+
+      expect(result.hit).toBe(true)
+      expect(result.collider).toBe(collider)
+    })
+  })
 })
