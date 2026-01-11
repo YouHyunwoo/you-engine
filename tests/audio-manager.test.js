@@ -72,4 +72,47 @@ describe('AudioManager', () => {
       expect(loadHandler).toHaveBeenCalledWith('bgm')
     })
   })
+
+  describe('play()', () => {
+    it('로드된 사운드를 재생한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      const instance = manager.play('bgm')
+
+      expect(instance.play).toHaveBeenCalled()
+    })
+
+    it('options로 volume, loop를 설정한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      const instance = manager.play('bgm', { volume: 0.5, loop: true })
+
+      expect(instance.volume).toBe(0.5)
+      expect(instance.loop).toBe(true)
+    })
+
+    it('풀에서 사용 가능한 인스턴스를 사용한다', async () => {
+      await manager.load('gunshot', 'gun.mp3', 2)
+
+      const first = manager.play('gunshot')
+      const second = manager.play('gunshot')
+
+      expect(first).not.toBe(second)
+    })
+
+    it('풀이 가득 차면 가장 오래된 인스턴스를 재사용한다', async () => {
+      await manager.load('gunshot', 'gun.mp3', 2)
+
+      const first = manager.play('gunshot')
+      manager.play('gunshot')
+      const third = manager.play('gunshot')
+
+      expect(first.stop).toHaveBeenCalled()
+      expect(third).toBe(first)
+    })
+
+    it('존재하지 않는 사운드를 재생하면 null을 반환한다', () => {
+      const result = manager.play('nonexistent')
+
+      expect(result).toBeNull()
+    })
+  })
 })

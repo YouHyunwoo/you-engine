@@ -72,4 +72,29 @@ export class AudioManager {
       }
     }
   }
+
+  play(id, { volume = 1.0, loop = false } = {}) {
+    const pool = this._pools[id]
+    if (!pool) {
+      console.warn(`Audio '${id}' not loaded`)
+      return null
+    }
+
+    // 사용 가능한 인스턴스 찾기
+    let instance = pool.find(audio => !audio.playing)
+
+    // 없으면 가장 오래된 것 재사용 (첫 번째)
+    if (!instance) {
+      instance = pool[0]
+      instance.stop()
+    }
+
+    // 옵션 설정
+    instance._baseVolume = volume
+    instance.volume = volume * this._masterVolume * (this._muted ? 0 : 1)
+    instance.loop = loop
+
+    instance.play()
+    return instance
+  }
 }
