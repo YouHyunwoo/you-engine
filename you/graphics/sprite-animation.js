@@ -91,4 +91,34 @@ export class SpriteAnimation {
     this._currentFrame = 0
     this._elapsed = 0
   }
+
+  update(deltaTime) {
+    if (!this._playing) return
+
+    this._elapsed += deltaTime
+    const frameDuration = 1000 / this.fps
+
+    while (this._elapsed >= frameDuration) {
+      this._elapsed -= frameDuration
+      this._advanceFrame()
+    }
+  }
+
+  _advanceFrame() {
+    const nextFrame = this._currentFrame + 1
+
+    if (nextFrame >= this.frames.length) {
+      if (this.loop) {
+        this._currentFrame = 0
+        this.event.emit('loopComplete')
+        this.event.emit('frameChange', this._currentFrame)
+      } else {
+        this._playing = false
+        this.event.emit('complete')
+      }
+    } else {
+      this._currentFrame = nextFrame
+      this.event.emit('frameChange', this._currentFrame)
+    }
+  }
 }

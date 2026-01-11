@@ -130,4 +130,97 @@ describe('SpriteAnimation', () => {
       expect(animation.currentFrame).toBe(0)
     })
   })
+
+  describe('update()', () => {
+    it('fps에 따라 프레임이 진행된다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32], [64, 0, 32, 32]],
+        fps: 10, // 100ms per frame
+      })
+
+      animation.play()
+      animation.update(100) // 100ms = 1 frame
+
+      expect(animation.currentFrame).toBe(1)
+    })
+
+    it('재생 중이 아니면 프레임이 진행되지 않는다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+        fps: 10,
+      })
+
+      animation.update(100)
+
+      expect(animation.currentFrame).toBe(0)
+    })
+
+    it('loop=true면 마지막 프레임 후 처음으로 돌아간다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+        fps: 10,
+        loop: true,
+      })
+
+      animation.play()
+      animation._currentFrame = 1
+      animation.update(100) // 마지막 프레임에서 다음으로
+
+      expect(animation.currentFrame).toBe(0)
+    })
+
+    it('loop=false면 마지막 프레임에서 멈추고 complete 이벤트를 발생시킨다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+        fps: 10,
+        loop: false,
+      })
+      const completeListener = vi.fn()
+      animation.event.on('complete', completeListener)
+
+      animation.play()
+      animation._currentFrame = 1
+      animation.update(100)
+
+      expect(animation.currentFrame).toBe(1)
+      expect(animation.playing).toBe(false)
+      expect(completeListener).toHaveBeenCalled()
+    })
+
+    it('loop=true면 loopComplete 이벤트를 발생시킨다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+        fps: 10,
+        loop: true,
+      })
+      const loopCompleteListener = vi.fn()
+      animation.event.on('loopComplete', loopCompleteListener)
+
+      animation.play()
+      animation._currentFrame = 1
+      animation.update(100)
+
+      expect(loopCompleteListener).toHaveBeenCalled()
+    })
+
+    it('프레임 변경 시 frameChange 이벤트를 발생시킨다', () => {
+      const animation = new SpriteAnimation({
+        sprite,
+        frames: [[0, 0, 32, 32], [32, 0, 32, 32]],
+        fps: 10,
+      })
+      const frameChangeListener = vi.fn()
+      animation.event.on('frameChange', frameChangeListener)
+
+      animation.play()
+      animation.update(100)
+
+      expect(frameChangeListener).toHaveBeenCalledWith(1)
+    })
+  })
 })
