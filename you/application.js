@@ -39,6 +39,10 @@ export class Application extends Loopable {
 		});
 
 		const mainScreen = screens[this.mainScreen];
+		if (!mainScreen) {
+			console.warn(`Screen not found: ${this.mainScreen}`);
+			return;
+		}
 		const mainScreenContext = mainScreen.context;
 
 		super.render(mainScreenContext, mainScreen, screens);
@@ -94,6 +98,10 @@ export class SceneApplication extends Application {
 		});
 
 		const mainScreen = screens[this.mainScreen];
+		if (!mainScreen) {
+			console.warn(`Screen not found: ${this.mainScreen}`);
+			return;
+		}
 		const mainScreenContext = mainScreen.context;
 
 		this.willRender(mainScreenContext, mainScreen, screens);
