@@ -88,6 +88,34 @@ describe('Loopable', () => {
       expect(order).toEqual(['willRender', 'didRender'])
     })
   })
+
+  describe('render 시그니처', () => {
+    it('willRender에 3개 파라미터가 전달된다', () => {
+      const loopable = new Loopable()
+      loopable.willRender = vi.fn()
+
+      const context = {}
+      const screen = {}
+      const screens = {}
+
+      loopable.render(context, screen, screens)
+
+      expect(loopable.willRender).toHaveBeenCalledWith(context, screen, screens)
+    })
+
+    it('didRender에 3개 파라미터가 전달된다', () => {
+      const loopable = new Loopable()
+      loopable.didRender = vi.fn()
+
+      const context = {}
+      const screen = {}
+      const screens = {}
+
+      loopable.render(context, screen, screens)
+
+      expect(loopable.didRender).toHaveBeenCalledWith(context, screen, screens)
+    })
+  })
 })
 
 describe('Enable', () => {

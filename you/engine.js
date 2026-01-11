@@ -30,6 +30,7 @@ export class Engine {
 	stop() {
 		this.loop.stop();
 		this.input.disconnect();
+		this.output.disconnect();
 
 		this.applications.forEach(app => {
 			app.destroy();

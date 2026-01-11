@@ -194,6 +194,49 @@ describe('Audio', () => {
     })
   })
 
+  describe('currentTime', () => {
+    it('로드 전 currentTime은 0이다', () => {
+      const audio = new Audio({ src: 'test.mp3' })
+
+      expect(audio.currentTime).toBe(0)
+      expect(Number.isFinite(audio.currentTime)).toBe(true)
+    })
+
+    it('duration이 0일 때 currentTime은 NaN이 아니다', () => {
+      // duration이 0인 상태를 만들기 위해 buffer를 null로 유지
+      mockContext.decodeAudioData = vi.fn(() => Promise.resolve({ duration: 0 }))
+
+      const audio = new Audio({ src: 'test.mp3' })
+      audio._loaded = true
+      audio._playing = true
+      audio._startTime = 0
+
+      expect(Number.isNaN(audio.currentTime)).toBe(false)
+      expect(Number.isFinite(audio.currentTime)).toBe(true)
+    })
+
+    it('재생 중 currentTime은 유효한 숫자이다', async () => {
+      const audio = new Audio({ src: 'test.mp3' })
+      await audio.loadPromise
+
+      audio.play()
+      mockContext.currentTime = 5
+
+      expect(Number.isFinite(audio.currentTime)).toBe(true)
+      expect(audio.currentTime).toBeGreaterThanOrEqual(0)
+    })
+
+    it('currentTime 설정 시 해당 위치에서 재생한다', async () => {
+      const audio = new Audio({ src: 'test.mp3' })
+      await audio.loadPromise
+
+      audio.play()
+      audio.currentTime = 5
+
+      expect(mockContext._sourceNode.start).toHaveBeenCalledWith(0, 5)
+    })
+  })
+
   describe('페이드', () => {
     it('fadeIn()으로 볼륨이 0에서 목표값으로 증가한다', async () => {
       const audio = new Audio({ src: 'test.mp3', volume: 0.8 })

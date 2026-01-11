@@ -89,6 +89,7 @@ export class Audio {
 
   get currentTime() {
     if (!this._playing) return this._pauseTime
+    if (!this.duration || this.duration === 0) return 0
     return (Audio.context.currentTime - this._startTime) % this.duration
   }
 

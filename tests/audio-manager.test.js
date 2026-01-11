@@ -72,6 +72,61 @@ describe('AudioManager', () => {
 
       expect(loadHandler).toHaveBeenCalledWith('bgm')
     })
+
+    it('로드 실패 시 에러가 전파된다', async () => {
+      const loadError = new Error('Network error')
+
+      // 에러를 발생시키는 Mock으로 재설정
+      Audio.mockImplementationOnce(function({ src }) {
+        return {
+          src,
+          volume: 1.0,
+          loop: false,
+          loaded: false,
+          playing: false,
+          loadPromise: Promise.reject(loadError),
+          event: {
+            on: vi.fn(),
+            emit: vi.fn(),
+          },
+        }
+      })
+
+      await expect(manager.load('test', 'invalid.mp3'))
+        .rejects.toThrow('Network error')
+    })
+
+    it('로드 실패 시 에러 메시지에 id가 포함된다', async () => {
+      const loadError = new Error('Network error')
+
+      Audio.mockImplementationOnce(function({ src }) {
+        return {
+          src,
+          volume: 1.0,
+          loop: false,
+          loaded: false,
+          playing: false,
+          loadPromise: Promise.reject(loadError),
+          event: {
+            on: vi.fn(),
+            emit: vi.fn(),
+          },
+        }
+      })
+
+      // console.error가 id를 포함한 메시지를 출력하는지 확인
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      await expect(manager.load('mySound', 'invalid.mp3'))
+        .rejects.toThrow()
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('mySound'),
+        expect.any(Error)
+      )
+
+      consoleSpy.mockRestore()
+    })
   })
 
   describe('play()', () => {

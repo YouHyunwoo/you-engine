@@ -12,7 +12,10 @@ export class Progress {
 
     update(delta, ...args) {
         if (!this.repeat &&
-            (this.speed > 0 && this.value >= 1 || this.speed < 0 && this.value <= 0)) { return }
+            ((this.speed > 0 && this.value >= 1) ||
+             (this.speed < 0 && this.value <= 0))) {
+            return;
+        }
         this.value += delta * this.speed;
 
         this.event.emit('update', this.value, ...args);

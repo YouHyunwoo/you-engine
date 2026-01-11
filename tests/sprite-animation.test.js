@@ -89,6 +89,22 @@ describe('SpriteAnimation', () => {
       expect(() => new SpriteAnimation({ sprite }))
         .toThrow()
     })
+
+    it('fps가 0이면 에러 발생', () => {
+      expect(() => new SpriteAnimation({
+        sprite,
+        grid: { cols: 4, count: 4 },
+        fps: 0
+      })).toThrow(/fps/i)
+    })
+
+    it('fps가 음수면 에러 발생', () => {
+      expect(() => new SpriteAnimation({
+        sprite,
+        grid: { cols: 4, count: 4 },
+        fps: -1
+      })).toThrow(/fps/i)
+    })
   })
 
   describe('재생 제어', () => {

@@ -1,6 +1,6 @@
 Array.prototype.add = function (other) {
     if (other instanceof Array) {
-        if (this.length !== other.length) { throw Error() }
+        if (this.length !== other.length) { throw new Error(`Vector length mismatch: ${this.length} vs ${other.length}`) }
         return this.map((value, index) => value + other[index]);
     }
     else {
@@ -10,7 +10,7 @@ Array.prototype.add = function (other) {
 
 Array.prototype.sub = function (other) {
     if (other instanceof Array) {
-        if (this.length !== other.length) { throw Error() }
+        if (this.length !== other.length) { throw new Error(`Vector length mismatch: ${this.length} vs ${other.length}`) }
         return this.map((value, index) => value - other[index]);
     }
     else {
@@ -20,7 +20,7 @@ Array.prototype.sub = function (other) {
 
 Array.prototype.mul = function (other) {
     if (other instanceof Array) {
-        if (this.length !== other.length) { throw Error() }
+        if (this.length !== other.length) { throw new Error(`Vector length mismatch: ${this.length} vs ${other.length}`) }
         return this.map((value, index) => value * other[index]);
     }
     else {
@@ -30,7 +30,7 @@ Array.prototype.mul = function (other) {
 
 Array.prototype.div = function (other) {
     if (other instanceof Array) {
-        if (this.length !== other.length) { throw Error() }
+        if (this.length !== other.length) { throw new Error(`Vector length mismatch: ${this.length} vs ${other.length}`) }
         return this.map((value, index) => value / other[index]);
     }
     else {
@@ -39,12 +39,12 @@ Array.prototype.div = function (other) {
 };
 
 Array.prototype.equals = function (other) {
-    if (this.length !== other.length) { throw Error() }
+    if (this.length !== other.length) { throw new Error(`Vector length mismatch: ${this.length} vs ${other.length}`) }
     return this.every((v, i) => v === other[i]);
 }
 
 Array.prototype.dot = function (other) {
-    if (this.length !== other.length) { throw Error() }
+    if (this.length !== other.length) { throw new Error(`Vector length mismatch: ${this.length} vs ${other.length}`) }
     return this.reduce((acc, cur, idx) => acc + cur * other[idx], 0);
 }
 
@@ -61,12 +61,16 @@ Object.defineProperty(Array.prototype, 'magnitude', {
 });
 
 Array.prototype.normalize = function () {
-    return this.div(this.magnitude);
+    const mag = this.magnitude;
+    if (mag === 0) {
+        return this.slice();
+    }
+    return this.div(mag);
 }
 
 Array.zeros = function (...shape) {
     if (shape.length < 1) {
-        throw Error();
+        throw new Error('Array.zeros requires at least one dimension');
     }
     else if (shape.length === 1) {
         return Array.repeat(shape[0], 0);

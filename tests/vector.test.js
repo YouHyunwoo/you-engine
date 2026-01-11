@@ -109,6 +109,47 @@ describe('Array Vector Operations', () => {
       expect(result[0]).toBeCloseTo(0.6)
       expect(result[1]).toBeCloseTo(0.8)
     })
+
+    it('영벡터는 영벡터를 반환한다', () => {
+      const result = [0, 0].normalize()
+      expect(result).toEqual([0, 0])
+    })
+
+    it('영벡터 정규화 시 Infinity가 아닌 0을 반환한다', () => {
+      const result = [0, 0].normalize()
+      expect(Number.isFinite(result[0])).toBe(true)
+      expect(Number.isFinite(result[1])).toBe(true)
+    })
+  })
+
+  describe('에러 메시지', () => {
+    it('add 길이 불일치 시 의미 있는 에러 메시지', () => {
+      expect(() => [1, 2].add([1, 2, 3])).toThrow(/length/i)
+    })
+
+    it('sub 길이 불일치 시 의미 있는 에러 메시지', () => {
+      expect(() => [1, 2].sub([1, 2, 3])).toThrow(/length/i)
+    })
+
+    it('mul 길이 불일치 시 의미 있는 에러 메시지', () => {
+      expect(() => [1, 2].mul([1, 2, 3])).toThrow(/length/i)
+    })
+
+    it('div 길이 불일치 시 의미 있는 에러 메시지', () => {
+      expect(() => [1, 2].div([1, 2, 3])).toThrow(/length/i)
+    })
+
+    it('dot 길이 불일치 시 의미 있는 에러 메시지', () => {
+      expect(() => [1, 2].dot([1, 2, 3])).toThrow(/length/i)
+    })
+
+    it('equals 길이 불일치 시 의미 있는 에러 메시지', () => {
+      expect(() => [1, 2].equals([1, 2, 3])).toThrow(/length/i)
+    })
+
+    it('Array.zeros 인자 없을 때 의미 있는 에러 메시지', () => {
+      expect(() => Array.zeros()).toThrow(/dimension/i)
+    })
   })
 })
 

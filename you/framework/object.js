@@ -54,8 +54,8 @@ export class Loopable extends Object {
 		this.didRender(context, screen, screens);
 		this.event.emit('didRender', context, screen, screens);
 	}
-	willRender(screens) {}
-	didRender(screens) {}
+	willRender(context, screen, screens) {}
+	didRender(context, screen, screens) {}
 }
 
 export class Enable extends Loopable {

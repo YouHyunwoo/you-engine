@@ -49,8 +49,14 @@ export class AudioManager {
       pool.push(audio)
     }
 
-    // 모든 인스턴스 로드 대기
-    await Promise.all(pool.map(audio => audio.loadPromise))
+    try {
+      // 모든 인스턴스 로드 대기
+      await Promise.all(pool.map(audio => audio.loadPromise))
+    } catch (error) {
+      // 에러 발생 시 재throw
+      console.error(`Failed to load audio '${id}':`, error)
+      throw error
+    }
 
     this._pools[id] = pool
     this.event.emit('load', id)

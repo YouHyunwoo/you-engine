@@ -58,6 +58,25 @@ describe('Application', () => {
 
       expect(mockContext.clearRect).toHaveBeenCalledWith(0, 0, 800, 600)
     })
+
+    it('존재하지 않는 mainScreen에서 크래시하지 않는다', () => {
+      const app = new Application({ mainScreen: 'nonexistent' })
+      const screens = {
+        main: {
+          context: { clearRect: vi.fn() },
+          canvas: { width: 800, height: 600 }
+        }
+      }
+
+      expect(() => app.render(screens)).not.toThrow()
+    })
+
+    it('mainScreen이 null일 때 크래시하지 않는다', () => {
+      const app = new Application({ mainScreen: null })
+      const screens = {}
+
+      expect(() => app.render(screens)).not.toThrow()
+    })
   })
 })
 
@@ -280,6 +299,13 @@ describe('SceneApplication', () => {
         main: { context: mockContext, canvas: mockCanvas }
       }
       app.mainScreen = 'main'
+
+      expect(() => app.render(screens)).not.toThrow()
+    })
+
+    it('존재하지 않는 mainScreen에서 크래시하지 않는다', () => {
+      const app = new SceneApplication({ mainScreen: 'nonexistent' })
+      const screens = {}
 
       expect(() => app.render(screens)).not.toThrow()
     })
