@@ -1,3 +1,5 @@
+import '../../../you/math/vector.js'
+import '../../../you/math/geometry.js'
 import { You } from '../../../you/you.js'
 import { MiniRPG } from './game.js'
 
