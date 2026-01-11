@@ -27,8 +27,11 @@ export class Resource {
     }
 
     clear() {
-        for (const resourceId in this) {
-            delete this[resourceId];
-        }
+        const preserveKeys = ['prefix'];
+        Object.keys(this)
+            .filter(key => !preserveKeys.includes(key))
+            .forEach(key => {
+                delete this[key];
+            });
     }
 }
