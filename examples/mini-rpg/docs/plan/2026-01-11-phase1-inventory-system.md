@@ -280,9 +280,9 @@ git commit -m "feat(mini-rpg): 아이템 및 드롭 테이블 데이터 정의"
 **Step 1: 테스트 파일 작성**
 
 ```javascript
-// tests/mini-rpg/item-manager.test.js
+// examples/mini-rpg/tests/item-manager.test.js
 import { describe, it, expect, beforeEach } from 'vitest'
-import { ItemManager } from '../../examples/mini-rpg/scripts/services/item-manager.js'
+import { ItemManager } from '../scripts/services/item-manager.js'
 
 describe('ItemManager', () => {
   let itemManager
@@ -331,7 +331,7 @@ describe('ItemManager', () => {
 **Step 2: 테스트 실행 확인 (실패)**
 
 ```bash
-pnpm test tests/mini-rpg/item-manager.test.js
+pnpm test examples/mini-rpg/tests/item-manager.test.js
 ```
 
 Expected: FAIL - module not found
@@ -377,7 +377,7 @@ export class ItemManager {
 **Step 4: 테스트 실행 확인 (성공)**
 
 ```bash
-pnpm test tests/mini-rpg/item-manager.test.js
+pnpm test examples/mini-rpg/tests/item-manager.test.js
 ```
 
 Expected: PASS
@@ -385,7 +385,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add examples/mini-rpg/scripts/services/ tests/mini-rpg/
+git add examples/mini-rpg/
 git commit -m "feat(mini-rpg): ItemManager 서비스 구현"
 ```
 
@@ -399,9 +399,9 @@ git commit -m "feat(mini-rpg): ItemManager 서비스 구현"
 **Step 1: 테스트 파일 작성**
 
 ```javascript
-// tests/mini-rpg/drop-table.test.js
+// examples/mini-rpg/tests/drop-table.test.js
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { DropTable } from '../../examples/mini-rpg/scripts/services/drop-table.js'
+import { DropTable } from '../scripts/services/drop-table.js'
 
 describe('DropTable', () => {
   let dropTable
@@ -458,7 +458,7 @@ describe('DropTable', () => {
 **Step 2: 테스트 실행 확인 (실패)**
 
 ```bash
-pnpm test tests/mini-rpg/drop-table.test.js
+pnpm test examples/mini-rpg/tests/drop-table.test.js
 ```
 
 Expected: FAIL
@@ -511,7 +511,7 @@ export class DropTable {
 **Step 4: 테스트 실행 확인 (성공)**
 
 ```bash
-pnpm test tests/mini-rpg/drop-table.test.js
+pnpm test examples/mini-rpg/tests/drop-table.test.js
 ```
 
 Expected: PASS
@@ -519,7 +519,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add examples/mini-rpg/scripts/services/ tests/mini-rpg/
+git add examples/mini-rpg/
 git commit -m "feat(mini-rpg): DropTable 서비스 구현"
 ```
 
@@ -533,9 +533,9 @@ git commit -m "feat(mini-rpg): DropTable 서비스 구현"
 **Step 1: 테스트 파일 작성**
 
 ```javascript
-// tests/mini-rpg/inventory.test.js
+// examples/mini-rpg/tests/inventory.test.js
 import { describe, it, expect, beforeEach } from 'vitest'
-import { Inventory } from '../../examples/mini-rpg/scripts/components/inventory.js'
+import { Inventory } from '../scripts/components/inventory.js'
 
 describe('Inventory', () => {
   let inventory
@@ -610,7 +610,7 @@ describe('Inventory', () => {
 **Step 2: 테스트 실행 확인 (실패)**
 
 ```bash
-pnpm test tests/mini-rpg/inventory.test.js
+pnpm test examples/mini-rpg/tests/inventory.test.js
 ```
 
 Expected: FAIL
@@ -739,7 +739,7 @@ export class Inventory extends Component {
 **Step 4: 테스트 실행 확인 (성공)**
 
 ```bash
-pnpm test tests/mini-rpg/inventory.test.js
+pnpm test examples/mini-rpg/tests/inventory.test.js
 ```
 
 Expected: PASS
@@ -747,7 +747,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add examples/mini-rpg/scripts/components/ tests/mini-rpg/
+git add examples/mini-rpg/
 git commit -m "feat(mini-rpg): Inventory 컴포넌트 구현"
 ```
 
@@ -761,9 +761,9 @@ git commit -m "feat(mini-rpg): Inventory 컴포넌트 구현"
 **Step 1: 테스트 파일 작성**
 
 ```javascript
-// tests/mini-rpg/equipment.test.js
+// examples/mini-rpg/tests/equipment.test.js
 import { describe, it, expect, beforeEach } from 'vitest'
-import { Equipment } from '../../examples/mini-rpg/scripts/components/equipment.js'
+import { Equipment } from '../scripts/components/equipment.js'
 
 describe('Equipment', () => {
   let equipment
@@ -834,7 +834,7 @@ describe('Equipment', () => {
 **Step 2: 테스트 실행 확인 (실패)**
 
 ```bash
-pnpm test tests/mini-rpg/equipment.test.js
+pnpm test examples/mini-rpg/tests/equipment.test.js
 ```
 
 Expected: FAIL
@@ -914,7 +914,7 @@ export class Equipment extends Component {
 **Step 4: 테스트 실행 확인 (성공)**
 
 ```bash
-pnpm test tests/mini-rpg/equipment.test.js
+pnpm test examples/mini-rpg/tests/equipment.test.js
 ```
 
 Expected: PASS
@@ -922,7 +922,7 @@ Expected: PASS
 **Step 5: Commit**
 
 ```bash
-git add examples/mini-rpg/scripts/components/ tests/mini-rpg/
+git add examples/mini-rpg/
 git commit -m "feat(mini-rpg): Equipment 컴포넌트 구현"
 ```
 
@@ -936,9 +936,9 @@ git commit -m "feat(mini-rpg): Equipment 컴포넌트 구현"
 **Step 1: 테스트 파일 작성**
 
 ```javascript
-// tests/mini-rpg/stats-equipment.test.js
+// examples/mini-rpg/tests/stats-equipment.test.js
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { Stats } from '../../examples/mini-rpg/scripts/components/stats.js'
+import { Stats } from '../scripts/components/stats.js'
 
 describe('Stats with Equipment Bonus', () => {
   let stats
@@ -989,7 +989,7 @@ describe('Stats with Equipment Bonus', () => {
 **Step 2: 테스트 실행 확인 (실패)**
 
 ```bash
-pnpm test tests/mini-rpg/stats-equipment.test.js
+pnpm test examples/mini-rpg/tests/stats-equipment.test.js
 ```
 
 Expected: FAIL
@@ -1102,7 +1102,7 @@ export class Stats extends Component {
 **Step 4: 테스트 실행 확인 (성공)**
 
 ```bash
-pnpm test tests/mini-rpg/stats-equipment.test.js
+pnpm test examples/mini-rpg/tests/stats-equipment.test.js
 ```
 
 Expected: PASS
@@ -1118,7 +1118,7 @@ Expected: 기존 테스트도 모두 PASS
 **Step 6: Commit**
 
 ```bash
-git add examples/mini-rpg/scripts/components/ tests/mini-rpg/
+git add examples/mini-rpg/
 git commit -m "feat(mini-rpg): Stats 컴포넌트에 장비 보너스 연동"
 ```
 
@@ -1133,9 +1133,9 @@ git commit -m "feat(mini-rpg): Stats 컴포넌트에 장비 보너스 연동"
 **Step 1: FieldItemBehavior 테스트 작성**
 
 ```javascript
-// tests/mini-rpg/field-item.test.js
+// examples/mini-rpg/tests/field-item.test.js
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { FieldItemBehavior } from '../../examples/mini-rpg/scripts/components/field-item-behavior.js'
+import { FieldItemBehavior } from '../scripts/components/field-item-behavior.js'
 
 describe('FieldItemBehavior', () => {
   let behavior
@@ -1206,7 +1206,7 @@ describe('FieldItemBehavior', () => {
 **Step 2: 테스트 실행 확인 (실패)**
 
 ```bash
-pnpm test tests/mini-rpg/field-item.test.js
+pnpm test examples/mini-rpg/tests/field-item.test.js
 ```
 
 Expected: FAIL
@@ -1327,7 +1327,7 @@ function getItemColor(type) {
 **Step 5: 테스트 실행 확인 (성공)**
 
 ```bash
-pnpm test tests/mini-rpg/field-item.test.js
+pnpm test examples/mini-rpg/tests/field-item.test.js
 ```
 
 Expected: PASS
@@ -1335,7 +1335,7 @@ Expected: PASS
 **Step 6: Commit**
 
 ```bash
-git add examples/mini-rpg/scripts/
+git add examples/mini-rpg/
 git commit -m "feat(mini-rpg): FieldItem 오브젝트 및 동작 구현"
 ```
 
@@ -1486,6 +1486,9 @@ git commit -m "feat(mini-rpg): 플레이어에 Inventory, Equipment 통합"
 
 **Step 1: game.js에서 서비스 초기화**
 
+> **Note:** 엔진의 `didCreate()`는 동기 호출이므로 async/await가 작동하지 않습니다.
+> 대신 데이터 로딩 완료 후 씬을 push하는 패턴을 사용합니다.
+
 ```javascript
 // game.js
 import { SceneApplication } from '../../../you/application.js'
@@ -1494,19 +1497,18 @@ import { ItemManager } from './services/item-manager.js'
 import { DropTable } from './services/drop-table.js'
 
 export class MiniRPG extends SceneApplication {
-  async didCreate() {
+  didCreate() {
     // 서비스 초기화
     this.itemManager = new ItemManager()
     this.dropTable = new DropTable()
 
-    // 데이터 로드
-    await this.loadGameData()
-
-    // 게임 씬 시작
-    const scene = new GameScene()
-    scene.itemManager = this.itemManager
-    scene.dropTable = this.dropTable
-    this.push(scene)
+    // 데이터 로드 후 게임 시작
+    this.loadGameData().then(() => {
+      const scene = new GameScene()
+      scene.itemManager = this.itemManager
+      scene.dropTable = this.dropTable
+      this.push(scene)
+    })
   }
 
   async loadGameData() {
@@ -2473,11 +2475,10 @@ examples/mini-rpg/
 │   ├── game.js (수정)
 │   └── main.js
 └── tests/
-    └── mini-rpg/
-        ├── drop-table.test.js
-        ├── equipment.test.js
-        ├── field-item.test.js
-        ├── inventory.test.js
-        ├── item-manager.test.js
-        └── stats-equipment.test.js
+    ├── drop-table.test.js
+    ├── equipment.test.js
+    ├── field-item.test.js
+    ├── inventory.test.js
+    ├── item-manager.test.js
+    └── stats-equipment.test.js
 ```
