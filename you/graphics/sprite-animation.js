@@ -27,6 +27,7 @@ export class SpriteAnimation {
   }) {
     if (!sprite) throw new Error('sprite is required')
     if (!frames && !grid) throw new Error('frames or grid is required')
+    if (fps <= 0) throw new Error('fps must be positive')
 
     this.sprite = sprite
     this.fps = fps
