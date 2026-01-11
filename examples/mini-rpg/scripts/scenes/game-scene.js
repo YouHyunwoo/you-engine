@@ -5,6 +5,7 @@ import { PlayerController } from '../components/player-controller.js'
 import { EnemyAI } from '../components/enemy-ai.js'
 import { AttackController } from '../components/attack-controller.js'
 import { Stats } from '../components/stats.js'
+import { HUD } from '../ui/hud.js'
 
 export class GameScene extends Scene {
   willCreate() {
@@ -23,6 +24,11 @@ export class GameScene extends Scene {
     this.player = player
 
     this.spawnEnemies()
+
+    // HUD 추가
+    const hud = new HUD()
+    hud.setPlayer(player)
+    this.add(hud)
   }
 
   spawnEnemies() {
