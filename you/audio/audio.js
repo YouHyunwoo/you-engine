@@ -160,4 +160,33 @@ export class Audio {
       this._gainNode = null
     }
   }
+
+  fadeIn(duration) {
+    if (!this._loaded) return
+
+    const targetVolume = this._volume
+    this._volume = 0
+
+    if (!this._playing) {
+      this.play()
+    }
+
+    const currentTime = Audio.context.currentTime
+    this._gainNode.gain.setValueAtTime(0, currentTime)
+    this._gainNode.gain.linearRampToValueAtTime(targetVolume, currentTime + duration / 1000)
+
+    this._volume = targetVolume
+  }
+
+  fadeOut(duration) {
+    if (!this._loaded || !this._gainNode) return
+
+    const currentTime = Audio.context.currentTime
+    this._gainNode.gain.setValueAtTime(this._gainNode.gain.value, currentTime)
+    this._gainNode.gain.linearRampToValueAtTime(0, currentTime + duration / 1000)
+
+    setTimeout(() => {
+      this.stop()
+    }, duration)
+  }
 }

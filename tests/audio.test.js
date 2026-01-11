@@ -193,4 +193,33 @@ describe('Audio', () => {
       expect(audio.playing).toBe(false)
     })
   })
+
+  describe('페이드', () => {
+    it('fadeIn()으로 볼륨이 0에서 목표값으로 증가한다', async () => {
+      const audio = new Audio({ src: 'test.mp3', volume: 0.8 })
+      await audio.loadPromise
+
+      audio.fadeIn(1000)
+
+      expect(mockContext._gainNode.gain.setValueAtTime).toHaveBeenCalledWith(0, expect.any(Number))
+      expect(mockContext._gainNode.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0.8, expect.any(Number))
+      expect(audio.playing).toBe(true)
+    })
+
+    it('fadeOut()으로 볼륨이 0으로 감소 후 정지한다', async () => {
+      vi.useFakeTimers()
+      const audio = new Audio({ src: 'test.mp3' })
+      await audio.loadPromise
+
+      audio.play()
+      audio.fadeOut(1000)
+
+      expect(mockContext._gainNode.gain.linearRampToValueAtTime).toHaveBeenCalledWith(0, expect.any(Number))
+
+      vi.advanceTimersByTime(1000)
+
+      expect(audio.playing).toBe(false)
+      vi.useRealTimers()
+    })
+  })
 })
