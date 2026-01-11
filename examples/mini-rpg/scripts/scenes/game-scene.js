@@ -6,6 +6,7 @@ import { EnemyAI } from '../components/enemy-ai.js'
 import { AttackController } from '../components/attack-controller.js'
 import { Stats } from '../components/stats.js'
 import { HUD } from '../ui/hud.js'
+import { GameOverScene } from './gameover-scene.js'
 
 export class GameScene extends Scene {
   willCreate() {
@@ -27,6 +28,11 @@ export class GameScene extends Scene {
     const playerStats = player.findComponent(Stats)
     playerStats.event.on('levelUp', (level) => {
       console.log(`Level Up! Now level ${level}`)
+    })
+
+    // 플레이어 사망 이벤트
+    playerStats.event.on('death', () => {
+      this.gameOver()
     })
 
     this.spawnEnemies()
@@ -102,5 +108,12 @@ export class GameScene extends Scene {
   didRender(context) {
     context.fillStyle = '#3d5a3d'
     context.fillRect(0, 0, this.mapSize[0], this.mapSize[1])
+  }
+
+  gameOver() {
+    // 약간의 딜레이 후 게임오버 씬으로 전환
+    setTimeout(() => {
+      this.transit(new GameOverScene())
+    }, 500)
   }
 }
