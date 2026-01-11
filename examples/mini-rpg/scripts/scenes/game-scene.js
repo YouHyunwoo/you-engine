@@ -1,6 +1,8 @@
 import { Scene } from '../../../../you/scene.js'
 import { createPlayer } from '../objects/player.js'
+import { createMushroom, createAnt } from '../objects/enemy.js'
 import { PlayerController } from '../components/player-controller.js'
+import { EnemyAI } from '../components/enemy-ai.js'
 
 export class GameScene extends Scene {
   willCreate() {
@@ -17,6 +19,24 @@ export class GameScene extends Scene {
 
     // 카메라가 플레이어를 따라가도록
     this.player = player
+
+    this.spawnEnemies()
+  }
+
+  spawnEnemies() {
+    const enemies = [
+      createMushroom(600, 400),
+      createMushroom(700, 500),
+      createAnt(500, 200),
+      createAnt(800, 300),
+      createAnt(550, 350)
+    ]
+
+    for (const enemy of enemies) {
+      const ai = enemy.findComponent(EnemyAI)
+      ai.setTarget(this.player)
+      this.add(enemy)
+    }
   }
 
   didUpdate(deltaTime, events, input) {
