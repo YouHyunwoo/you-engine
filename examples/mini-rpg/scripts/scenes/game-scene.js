@@ -155,9 +155,18 @@ export class GameScene extends Scene {
     this.add(enemy)
   }
 
-  didRender(context) {
+  willRender(context, screen) {
+    // 배경을 카메라 변환 적용해서 그리기
+    const camera = this.camera
+    context.save()
+    context.translate(screen.width / 2, screen.height / 2)
+    context.scale(...camera.scale)
+    context.translate(-Math.floor(camera.position[0]), -Math.floor(camera.position[1]))
+
     context.fillStyle = '#3d5a3d'
     context.fillRect(0, 0, this.mapSize[0], this.mapSize[1])
+
+    context.restore()
   }
 
   gameOver() {
