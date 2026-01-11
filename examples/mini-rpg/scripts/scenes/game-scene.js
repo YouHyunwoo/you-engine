@@ -23,6 +23,12 @@ export class GameScene extends Scene {
     // 카메라가 플레이어를 따라가도록
     this.player = player
 
+    // 레벨업 이벤트
+    const playerStats = player.findComponent(Stats)
+    playerStats.event.on('levelUp', (level) => {
+      console.log(`Level Up! Now level ${level}`)
+    })
+
     this.spawnEnemies()
 
     // HUD 추가
@@ -72,6 +78,14 @@ export class GameScene extends Scene {
 
     for (const hit of hits) {
       console.log(`Hit ${hit.target.name} for ${hit.damage} damage`)
+
+      const targetStats = hit.target.findComponent(Stats)
+      if (!targetStats.alive) {
+        // 경험치 획득
+        const playerStats = this.player.findComponent(Stats)
+        playerStats.addExp(hit.target.expReward || 10)
+        console.log(`Gained ${hit.target.expReward} EXP`)
+      }
     }
   }
 

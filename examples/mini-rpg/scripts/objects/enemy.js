@@ -23,6 +23,7 @@ export function createMushroom(x, y) {
   })
 
   enemy.position = [x, y]
+  enemy.expReward = 25 // 버섯은 25 경험치
 
   return enemy
 }
@@ -46,6 +47,7 @@ export function createAnt(x, y) {
   })
 
   enemy.position = [x, y]
+  enemy.expReward = 15 // 개미는 15 경험치
 
   return enemy
 }
