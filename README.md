@@ -1,5 +1,7 @@
 # you-engine
 
-This is game engine for web.
+A 2D game engine for web.
 
-See examples in this repository to learn how to use `you-engine`.
+Pure JavaScript (ES6 modules). No build step required.
+
+See `examples/` folder to learn how to use `you-engine`.
