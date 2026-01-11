@@ -3,6 +3,8 @@ import { createPlayer } from '../objects/player.js'
 import { createMushroom, createAnt } from '../objects/enemy.js'
 import { PlayerController } from '../components/player-controller.js'
 import { EnemyAI } from '../components/enemy-ai.js'
+import { AttackController } from '../components/attack-controller.js'
+import { Stats } from '../components/stats.js'
 
 export class GameScene extends Scene {
   willCreate() {
@@ -44,6 +46,36 @@ export class GameScene extends Scene {
     if (this.camera && this.player) {
       this.camera.position[0] = this.player.position[0]
       this.camera.position[1] = this.player.position[1]
+    }
+
+    // 공격 입력
+    for (const ev of events) {
+      if (ev.type === 'keydown' && (ev.key === ' ' || ev.key === 'j')) {
+        this.playerAttack()
+      }
+    }
+
+    // 죽은 적 제거
+    this.removeDeadEnemies()
+  }
+
+  playerAttack() {
+    const attackController = this.player.findComponent(AttackController)
+    const enemies = this.objects.filter(obj => obj.tags.has('enemy'))
+    const hits = attackController.attack(enemies)
+
+    for (const hit of hits) {
+      console.log(`Hit ${hit.target.name} for ${hit.damage} damage`)
+    }
+  }
+
+  removeDeadEnemies() {
+    const enemies = this.objects.filter(obj => obj.tags.has('enemy'))
+    for (const enemy of enemies) {
+      const stats = enemy.findComponent(Stats)
+      if (stats && !stats.alive) {
+        this.remove(enemy)
+      }
     }
   }
 
