@@ -11,6 +11,9 @@ import { GameOverScene } from './gameover-scene.js'
 export class GameScene extends Scene {
   willCreate() {
     this.mapSize = [1600, 1200]
+    this.respawnTimer = 0
+    this.respawnInterval = 5 // 5초마다 리스폰 체크
+    this.maxEnemies = 10
   }
 
   didCreate() {
@@ -75,6 +78,13 @@ export class GameScene extends Scene {
 
     // 죽은 적 제거
     this.removeDeadEnemies()
+
+    // 리스폰 체크
+    this.respawnTimer += deltaTime
+    if (this.respawnTimer >= this.respawnInterval) {
+      this.respawnTimer = 0
+      this.checkRespawn()
+    }
   }
 
   playerAttack() {
@@ -103,6 +113,39 @@ export class GameScene extends Scene {
         this.remove(enemy)
       }
     }
+  }
+
+  checkRespawn() {
+    const enemies = this.objects.filter(obj => obj.tags.has('enemy'))
+    const count = enemies.length
+
+    if (count < this.maxEnemies) {
+      const toSpawn = Math.min(3, this.maxEnemies - count)
+      for (let i = 0; i < toSpawn; i++) {
+        this.spawnRandomEnemy()
+      }
+    }
+  }
+
+  spawnRandomEnemy() {
+    // 플레이어로부터 일정 거리 떨어진 곳에 스폰
+    const playerPos = this.player.position
+    let x, y, attempts = 0
+
+    do {
+      x = Math.random() * this.mapSize[0]
+      y = Math.random() * this.mapSize[1]
+      const dx = x - playerPos[0]
+      const dy = y - playerPos[1]
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist > 200) break
+      attempts++
+    } while (attempts < 10)
+
+    const enemy = Math.random() > 0.4 ? createMushroom(x, y) : createAnt(x, y)
+    const ai = enemy.findComponent(EnemyAI)
+    ai.setTarget(this.player)
+    this.add(enemy)
   }
 
   didRender(context) {
