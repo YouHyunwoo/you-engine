@@ -10,10 +10,11 @@ const createMockAudio = ({ src, volume, loop }) => ({
   loop: loop ?? false,
   loaded: true,
   playing: false,
+  _pauseTime: 0,
   loadPromise: Promise.resolve(),
   play: vi.fn(function() { this.playing = true }),
-  pause: vi.fn(function() { this.playing = false }),
-  stop: vi.fn(function() { this.playing = false }),
+  pause: vi.fn(function() { this.playing = false; this._pauseTime = 1 }),
+  stop: vi.fn(function() { this.playing = false; this._pauseTime = 0 }),
   fadeIn: vi.fn(),
   fadeOut: vi.fn(),
   event: {
@@ -113,6 +114,84 @@ describe('AudioManager', () => {
       const result = manager.play('nonexistent')
 
       expect(result).toBeNull()
+    })
+  })
+
+  describe('pause() / resume() / stop()', () => {
+    it('pause()로 특정 사운드를 일시 정지한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      const instance = manager.play('bgm')
+
+      manager.pause('bgm')
+
+      expect(instance.pause).toHaveBeenCalled()
+    })
+
+    it('resume()으로 특정 사운드를 재개한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      manager.play('bgm')
+      manager.pause('bgm')
+
+      manager.resume('bgm')
+
+      expect(Audio.mock.results[0].value.play).toHaveBeenCalledTimes(2)
+    })
+
+    it('stop()으로 특정 사운드를 정지한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      const instance = manager.play('bgm')
+
+      manager.stop('bgm')
+
+      expect(instance.stop).toHaveBeenCalled()
+    })
+
+    it('stopAll()로 모든 사운드를 정지한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      await manager.load('sfx', 'effect.mp3')
+
+      manager.play('bgm')
+      manager.play('sfx')
+
+      manager.stopAll()
+
+      expect(Audio.mock.results[0].value.stop).toHaveBeenCalled()
+      expect(Audio.mock.results[1].value.stop).toHaveBeenCalled()
+    })
+  })
+
+  describe('mute() / unmute()', () => {
+    it('mute()로 음소거한다', () => {
+      manager.mute()
+
+      expect(manager.muted).toBe(true)
+    })
+
+    it('unmute()로 음소거 해제한다', () => {
+      manager.mute()
+      manager.unmute()
+
+      expect(manager.muted).toBe(false)
+    })
+  })
+
+  describe('fadeIn() / fadeOut()', () => {
+    it('fadeIn()으로 특정 사운드를 페이드 인한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      manager.play('bgm')
+
+      manager.fadeIn('bgm', 1000)
+
+      expect(Audio.mock.results[0].value.fadeIn).toHaveBeenCalledWith(1000)
+    })
+
+    it('fadeOut()으로 특정 사운드를 페이드 아웃한다', async () => {
+      await manager.load('bgm', 'music.mp3')
+      manager.play('bgm')
+
+      manager.fadeOut('bgm', 1000)
+
+      expect(Audio.mock.results[0].value.fadeOut).toHaveBeenCalledWith(1000)
     })
   })
 })

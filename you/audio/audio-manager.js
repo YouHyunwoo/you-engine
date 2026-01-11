@@ -97,4 +97,75 @@ export class AudioManager {
     instance.play()
     return instance
   }
+
+  pause(id) {
+    const pool = this._pools[id]
+    if (!pool) return
+
+    for (const audio of pool) {
+      if (audio.playing) {
+        audio.pause()
+      }
+    }
+  }
+
+  resume(id) {
+    const pool = this._pools[id]
+    if (!pool) return
+
+    for (const audio of pool) {
+      if (!audio.playing && audio._pauseTime > 0) {
+        audio.play()
+      }
+    }
+  }
+
+  stop(id) {
+    const pool = this._pools[id]
+    if (!pool) return
+
+    for (const audio of pool) {
+      audio.stop()
+    }
+  }
+
+  stopAll() {
+    for (const pool of Object.values(this._pools)) {
+      for (const audio of pool) {
+        audio.stop()
+      }
+    }
+  }
+
+  fadeIn(id, duration) {
+    const pool = this._pools[id]
+    if (!pool) return
+
+    for (const audio of pool) {
+      if (audio.playing) {
+        audio.fadeIn(duration)
+      }
+    }
+  }
+
+  fadeOut(id, duration) {
+    const pool = this._pools[id]
+    if (!pool) return
+
+    for (const audio of pool) {
+      if (audio.playing) {
+        audio.fadeOut(duration)
+      }
+    }
+  }
+
+  mute() {
+    this._muted = true
+    this._updateAllVolumes()
+  }
+
+  unmute() {
+    this._muted = false
+    this._updateAllVolumes()
+  }
 }
