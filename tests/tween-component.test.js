@@ -212,4 +212,25 @@ describe('TweenComponent', () => {
 			expect(() => component.willUpdate(500)).not.toThrow()
 		})
 	})
+
+	describe('여러 트윈 동시 종료', () => {
+		it('동시에 여러 트윈이 종료되어도 안전하게 처리', () => {
+			const component = new TweenComponent()
+			component.object = { a: 0, b: 0, c: 0 }
+
+			component.run({ property: 'a', to: 10, duration: 100 })
+			component.run({ property: 'b', to: 20, duration: 100 })
+			component.run({ property: 'c', to: 30, duration: 100 })
+
+			// 모든 트윈이 한 번에 종료되도록 큰 deltaTime
+			expect(() => {
+				component.willUpdate(200, [], {})
+			}).not.toThrow()
+
+			expect(component.object.a).toBe(10)
+			expect(component.object.b).toBe(20)
+			expect(component.object.c).toBe(30)
+			expect(component._tweens.length).toBe(0)
+		})
+	})
 })

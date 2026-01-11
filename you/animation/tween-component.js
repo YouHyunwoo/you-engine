@@ -88,9 +88,7 @@ export class TweenComponent extends Component {
 	willUpdate(deltaTime, events, input) {
 		if (!this.object) return;
 
-		for (let i = this._tweens.length - 1; i >= 0; i--) {
-			const tween = this._tweens[i];
-
+		for (const tween of this._tweens) {
 			// 첫 업데이트 시 from 값 설정
 			if (!tween.started) {
 				tween.started = true;
@@ -120,9 +118,12 @@ export class TweenComponent extends Component {
 					tween.onFinish(tween.to);
 				}
 
-				this._tweens.splice(i, 1);
+				tween.finished = true;
 			}
 		}
+
+		// 완료된 트윈 제거 (filter 사용)
+		this._tweens = this._tweens.filter(t => !t.finished);
 	}
 
 	_getValue(property) {
