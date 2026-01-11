@@ -1,0 +1,26 @@
+{
+  "name": "you-engine",
+  "version": "0.1.0",
+  "description": "웹 기반 2D 게임 엔진",
+  "type": "module",
+  "main": "you/you.js",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "game-engine",
+    "2d",
+    "javascript",
+    "canvas"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.23.0",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.16",
+    "jsdom": "^27.4.0",
+    "vitest": "^4.0.16"
+  }
+}

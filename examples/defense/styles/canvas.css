@@ -1,0 +1,15 @@
+body {
+	height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: radial-gradient(circle at 20% 20%, #1e2a44, #0b1020 55%);
+	color: #e5e7eb;
+	font-family: "Segoe UI", sans-serif;
+}
+
+canvas {
+	background: #0f172a;
+	border: 2px solid #1f2937;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
