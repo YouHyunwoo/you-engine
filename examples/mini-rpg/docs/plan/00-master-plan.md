@@ -1,6 +1,7 @@
-# Mini RPG 구현 계획서
+# Mini RPG 총괄 계획서 (Master Plan)
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
+> 이 문서는 Mini RPG 프로젝트의 전체 로드맵을 정의합니다.
+> 각 Phase의 상세 구현 계획은 별도 문서로 관리됩니다.
 
 **Goal:** 바람의나라 스타일 2.5D 탑다운 RPG 예제 게임 구현
 
