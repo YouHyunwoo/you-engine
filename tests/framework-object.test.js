@@ -137,6 +137,16 @@ describe('Enable', () => {
 
       expect(listener).not.toHaveBeenCalled()
     })
+
+    it('enable=true이면 update가 실행된다', () => {
+      const obj = new Enable({ enable: true })
+      const listener = vi.fn()
+      obj.willUpdate = listener
+
+      obj.update(16, {}, {})
+
+      expect(listener).toHaveBeenCalled()
+    })
   })
 
   describe('render()', () => {
@@ -148,6 +158,16 @@ describe('Enable', () => {
       obj.render({}, {}, {})
 
       expect(listener).not.toHaveBeenCalled()
+    })
+
+    it('enable=true이면 render가 실행된다', () => {
+      const obj = new Enable({ enable: true })
+      const listener = vi.fn()
+      obj.willRender = listener
+
+      obj.render({}, {}, {})
+
+      expect(listener).toHaveBeenCalled()
     })
   })
 })
@@ -262,6 +282,54 @@ describe('Stateful', () => {
       obj.render({}, {}, {})
 
       expect(listener).not.toHaveBeenCalled()
+    })
+
+    it('CREATED + enable=true이면 render가 실행된다', () => {
+      const obj = new Stateful()
+      const listener = vi.fn()
+      obj.willRender = listener
+      obj.create()
+
+      obj.render({}, {}, {})
+
+      expect(listener).toHaveBeenCalled()
+    })
+  })
+
+  describe('enable setter (Stateful 상세)', () => {
+    it('CREATED 상태에서 enable을 true로 변경할 수 있다', () => {
+      const obj = new Stateful({ enable: false })
+      obj.create()
+      const order = []
+      obj.willBeEnabled = () => order.push('willBeEnabled')
+      obj.didBeEnabled = () => order.push('didBeEnabled')
+
+      obj.enable = true
+
+      expect(obj.enable).toBe(true)
+      expect(order).toEqual(['willBeEnabled', 'didBeEnabled'])
+    })
+
+    it('CREATED 상태에서 enable을 false로 변경할 수 있다', () => {
+      const obj = new Stateful({ enable: true })
+      obj.create()
+      const order = []
+      obj.willBeDisabled = () => order.push('willBeDisabled')
+      obj.didBeDisabled = () => order.push('didBeDisabled')
+
+      obj.enable = false
+
+      expect(obj.enable).toBe(false)
+      expect(order).toEqual(['willBeDisabled', 'didBeDisabled'])
+    })
+
+    it('DESTROYING 상태에서는 enable setter가 무시된다', () => {
+      const obj = new Stateful()
+      obj.create()
+      // destroy 중 enable = false 호출이 무시되므로 enable은 true 유지
+      obj.destroy()
+
+      expect(obj.enable).toBe(true)
     })
   })
 })

@@ -1,8 +1,8 @@
-import { Object as BaseObject } from "../framework/object.js";
+import { Loopable } from "../framework/object.js";
 import { EventEmitter } from "./event.js";
 
 
-export class Task extends BaseObject {
+export class Task extends Loopable {
 
 	constructor() {
 		super();
@@ -56,7 +56,7 @@ export class Parallel extends Task {
     }
 }
 
-export class Procedure extends BaseObject {
+export class Procedure extends Loopable {
 
     constructor(tasks) {
 		super();

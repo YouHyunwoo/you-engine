@@ -144,6 +144,61 @@ describe('Procedure', () => {
       expect(procedure.tasks).toHaveLength(1)
     })
   })
+
+  describe('update()', () => {
+    it('현재 task만 update한다', () => {
+      const task1 = new Task()
+      const task2 = new Task()
+      task1.update = vi.fn()
+      task2.update = vi.fn()
+      const procedure = new Procedure([task1, task2])
+
+      procedure.update(16, {}, {})
+
+      expect(task1.update).toHaveBeenCalled()
+      expect(task2.update).not.toHaveBeenCalled()
+    })
+
+    it('빈 procedure에서 update해도 에러가 발생하지 않는다', () => {
+      const procedure = new Procedure([])
+
+      expect(() => procedure.update(16, {}, {})).not.toThrow()
+    })
+
+    it('현재 task가 finish되면 다음 task가 update된다', () => {
+      const task1 = new Task()
+      const task2 = new Task()
+      task1.update = vi.fn()
+      task2.update = vi.fn()
+      const procedure = new Procedure([task1, task2])
+
+      procedure.finish(task1)
+      procedure.update(16, {}, {})
+
+      expect(task2.update).toHaveBeenCalled()
+    })
+  })
+
+  describe('render()', () => {
+    it('현재 task만 render한다', () => {
+      const task1 = new Task()
+      const task2 = new Task()
+      task1.render = vi.fn()
+      task2.render = vi.fn()
+      const procedure = new Procedure([task1, task2])
+
+      procedure.render({}, {}, {})
+
+      expect(task1.render).toHaveBeenCalled()
+      expect(task2.render).not.toHaveBeenCalled()
+    })
+
+    it('빈 procedure에서 render해도 에러가 발생하지 않는다', () => {
+      const procedure = new Procedure([])
+
+      expect(() => procedure.render({}, {}, {})).not.toThrow()
+    })
+  })
 })
 
 describe('Parallel', () => {
@@ -154,6 +209,64 @@ describe('Parallel', () => {
 
     expect(parallel.tasks).toHaveLength(2)
     expect(parallel.finished).toEqual([false, false])
+  })
+
+  describe('update()', () => {
+    it('완료되지 않은 task들만 update한다', () => {
+      const task1 = new Task()
+      const task2 = new Task()
+      task1.update = vi.fn()
+      task2.update = vi.fn()
+      const parallel = new Parallel([task1, task2])
+
+      parallel.update(16, {}, {})
+
+      expect(task1.update).toHaveBeenCalled()
+      expect(task2.update).toHaveBeenCalled()
+    })
+
+    it('완료된 task는 update하지 않는다', () => {
+      const task1 = new Task()
+      const task2 = new Task()
+      task1.update = vi.fn()
+      task2.update = vi.fn()
+      const parallel = new Parallel([task1, task2])
+
+      parallel.finish(task1)
+      parallel.update(16, {}, {})
+
+      expect(task1.update).not.toHaveBeenCalled()
+      expect(task2.update).toHaveBeenCalled()
+    })
+  })
+
+  describe('render()', () => {
+    it('완료되지 않은 task들만 render한다', () => {
+      const task1 = new Task()
+      const task2 = new Task()
+      task1.render = vi.fn()
+      task2.render = vi.fn()
+      const parallel = new Parallel([task1, task2])
+
+      parallel.render({}, {}, {})
+
+      expect(task1.render).toHaveBeenCalled()
+      expect(task2.render).toHaveBeenCalled()
+    })
+
+    it('완료된 task는 render하지 않는다', () => {
+      const task1 = new Task()
+      const task2 = new Task()
+      task1.render = vi.fn()
+      task2.render = vi.fn()
+      const parallel = new Parallel([task1, task2])
+
+      parallel.finish(task1)
+      parallel.render({}, {}, {})
+
+      expect(task1.render).not.toHaveBeenCalled()
+      expect(task2.render).toHaveBeenCalled()
+    })
   })
 
   it('각 task의 procedure를 Parallel로 설정한다', () => {
