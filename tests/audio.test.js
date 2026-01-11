@@ -129,4 +129,68 @@ describe('Audio', () => {
       expect(audio.duration).toBe(10)
     })
   })
+
+  describe('재생 제어', () => {
+    it('play()로 재생한다', async () => {
+      const audio = new Audio({ src: 'test.mp3' })
+      await audio.loadPromise
+
+      audio.play()
+
+      expect(mockContext.createBufferSource).toHaveBeenCalled()
+      expect(mockContext._sourceNode.start).toHaveBeenCalled()
+      expect(audio.playing).toBe(true)
+    })
+
+    it('pause()로 일시 정지한다', async () => {
+      const audio = new Audio({ src: 'test.mp3' })
+      await audio.loadPromise
+
+      audio.play()
+      audio.pause()
+
+      expect(audio.playing).toBe(false)
+    })
+
+    it('stop()으로 정지하고 처음으로 돌아간다', async () => {
+      const audio = new Audio({ src: 'test.mp3' })
+      await audio.loadPromise
+
+      audio.play()
+      audio.stop()
+
+      expect(audio.playing).toBe(false)
+      expect(audio.currentTime).toBe(0)
+    })
+
+    it('재생 완료 시 end 이벤트가 발생한다', async () => {
+      const audio = new Audio({ src: 'test.mp3' })
+      await audio.loadPromise
+      const endHandler = vi.fn()
+      audio.event.on('end', endHandler)
+
+      audio.play()
+      // onended 콜백 시뮬레이션
+      mockContext._sourceNode.onended?.()
+
+      expect(endHandler).toHaveBeenCalled()
+    })
+
+    it('loop=true면 반복 재생한다', async () => {
+      const audio = new Audio({ src: 'test.mp3', loop: true })
+      await audio.loadPromise
+
+      audio.play()
+
+      expect(mockContext._sourceNode.loop).toBe(true)
+    })
+
+    it('로드 전에 play()를 호출하면 무시된다', () => {
+      const audio = new Audio({ src: 'test.mp3' })
+
+      audio.play()
+
+      expect(audio.playing).toBe(false)
+    })
+  })
 })

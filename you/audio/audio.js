@@ -98,4 +98,66 @@ export class Audio {
     this._pauseTime = value
     if (wasPlaying) this.play()
   }
+
+  play() {
+    if (!this._loaded || this._playing) return
+
+    // AudioContext 재개 (브라우저 정책)
+    if (Audio.context.state === 'suspended') {
+      Audio.context.resume()
+    }
+
+    this._createSource()
+    this._source.start(0, this._pauseTime)
+    this._startTime = Audio.context.currentTime - this._pauseTime
+    this._playing = true
+  }
+
+  pause() {
+    if (!this._playing) return
+
+    this._pauseTime = this.currentTime
+    this._destroySource()
+    this._playing = false
+  }
+
+  stop() {
+    if (this._playing) {
+      this._destroySource()
+    }
+    this._playing = false
+    this._pauseTime = 0
+  }
+
+  _createSource() {
+    this._source = Audio.context.createBufferSource()
+    this._source.buffer = this._buffer
+    this._source.loop = this._loop
+
+    this._gainNode = Audio.context.createGain()
+    this._gainNode.gain.value = this._volume
+
+    this._source.connect(this._gainNode)
+    this._gainNode.connect(Audio.context.destination)
+
+    this._source.onended = () => {
+      if (this._playing && !this._loop) {
+        this._playing = false
+        this._pauseTime = 0
+        this.event.emit('end')
+      }
+    }
+  }
+
+  _destroySource() {
+    if (this._source) {
+      this._source.stop()
+      this._source.disconnect()
+      this._source = null
+    }
+    if (this._gainNode) {
+      this._gainNode.disconnect()
+      this._gainNode = null
+    }
+  }
 }
