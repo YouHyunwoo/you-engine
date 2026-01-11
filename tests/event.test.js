@@ -126,21 +126,27 @@ describe('EventEmitter', () => {
       expect(() => emitter.remove('nonexistent')).not.toThrow()
     })
 
-    it('특정 리스너만 제거할 수 있다', () => {
-      const listener1 = vi.fn()
-      const listener2 = vi.fn()
-      const boundListener1 = listener1.bind(null)
+    it('등록한 리스너를 제거할 수 있다', () => {
+      const handler = vi.fn()
 
-      // listener1의 바인딩된 함수를 저장하기 위해 직접 eventGroups 접근
-      emitter.on('test', listener1)
-      emitter.on('test', listener2)
-
-      // 바인딩된 리스너를 가져와서 제거
-      const boundListener = emitter.eventGroups['test'][0][0]
-      emitter.remove('test', boundListener)
+      emitter.on('test', handler)
+      emitter.remove('test', handler)
       emitter.emit('test')
 
-      expect(listener2).toHaveBeenCalled()
+      expect(handler).not.toHaveBeenCalled()
+    })
+
+    it('특정 리스너만 제거된다', () => {
+      const handler1 = vi.fn()
+      const handler2 = vi.fn()
+
+      emitter.on('test', handler1)
+      emitter.on('test', handler2)
+      emitter.remove('test', handler1)
+      emitter.emit('test')
+
+      expect(handler1).not.toHaveBeenCalled()
+      expect(handler2).toHaveBeenCalled()
     })
 
     it('존재하지 않는 리스너를 제거해도 에러가 발생하지 않는다', () => {
