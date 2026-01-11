@@ -85,6 +85,7 @@ You.run({
 - **기본 브랜치**: `develop` (최신 상태 유지)
 - **피처 브랜치**: 작업별로 `develop`에서 분기하여 생성
 - **Squash merge**: 피처당 하나의 커밋으로 압축
+- **머지 위치**: fork된 kvjng 브랜치에서 머지 (origin)
 - **작업 흐름**:
   1. `develop` 브랜치를 최신 상태로 유지
   2. `develop`에서 `feature/<작업명>` 브랜치 생성
