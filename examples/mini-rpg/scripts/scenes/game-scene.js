@@ -1,11 +1,16 @@
 import { Scene } from '../../../../you/scene.js'
+import { Object } from '../../../../you/object.js'
 import { createPlayer } from '../objects/player.js'
 import { createMushroom, createAnt } from '../objects/enemy.js'
+import { createTree, createRock } from '../objects/structure.js'
 import { PlayerController } from '../components/player-controller.js'
 import { EnemyAI } from '../components/enemy-ai.js'
 import { AttackController } from '../components/attack-controller.js'
 import { Stats } from '../components/stats.js'
 import { ShapeRenderer } from '../components/shape-renderer.js'
+import { Collider } from '../components/collider.js'
+import { TileMap } from '../components/tilemap.js'
+import { FOREST_MAP } from '../data/maps.js'
 import { HUD } from '../ui/hud.js'
 import { GameOverScene } from './gameover-scene.js'
 
@@ -18,6 +23,13 @@ export class GameScene extends Scene {
   }
 
   didCreate() {
+    // 타일맵 오브젝트 생성
+    const mapObject = new Object({ name: 'tilemap' })
+    this.tilemap = new TileMap({ tiles: FOREST_MAP, tileSize: 16 })
+    mapObject.addComponent(this.tilemap)
+    mapObject.position = [0, 0]
+    this.add(mapObject)
+
     const player = createPlayer(400, 300)
     this.add(player)
 
@@ -39,12 +51,57 @@ export class GameScene extends Scene {
       this.gameOver()
     })
 
+    this.spawnStructures(30)
+
     this.spawnEnemies()
 
     // HUD 추가
     const hud = new HUD()
     hud.setPlayer(player)
     this.add(hud)
+  }
+
+  spawnStructures(count = 30) {
+    const structures = []
+    const playerSpawnRadius = 100
+    const playerPos = [400, 300] // 플레이어 초기 위치
+
+    let attempts = 0
+    const maxAttempts = count * 10
+
+    while (structures.length < count && attempts < maxAttempts) {
+      attempts++
+
+      // 랜덤 위치 (맵 가장자리 타일 피하기)
+      const margin = 32
+      const x = margin + Math.random() * (this.mapSize[0] - margin * 2)
+      const y = margin + Math.random() * (this.mapSize[1] - margin * 2)
+
+      // 플레이어 스폰 근처 제외
+      const dx = x - playerPos[0]
+      const dy = y - playerPos[1]
+      if (Math.sqrt(dx * dx + dy * dy) < playerSpawnRadius) continue
+
+      // 타일맵에서 통과 가능한지 확인
+      if (!this.tilemap.isPassable(x, y)) continue
+
+      // 기존 구조물과 겹침 검사
+      let overlaps = false
+      for (const s of structures) {
+        const sdx = s.position[0] - x
+        const sdy = s.position[1] - y
+        if (Math.sqrt(sdx * sdx + sdy * sdy) < 40) {
+          overlaps = true
+          break
+        }
+      }
+      if (overlaps) continue
+
+      // 나무:바위 = 7:3 비율
+      const structure = Math.random() < 0.7 ? createTree(x, y) : createRock(x, y)
+      structures.push(structure)
+      this.add(structure)
+    }
   }
 
   spawnEnemies() {
@@ -153,12 +210,6 @@ export class GameScene extends Scene {
     const ai = enemy.findComponent(EnemyAI)
     ai.setTarget(this.player)
     this.add(enemy)
-  }
-
-  willRender(context, screen) {
-    // 전체 화면을 배경색으로 채우기
-    context.fillStyle = '#3d5a3d'
-    context.fillRect(0, 0, screen.width, screen.height)
   }
 
   gameOver() {
